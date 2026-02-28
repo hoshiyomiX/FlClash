@@ -2,8 +2,6 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'state.dart';
-
 part 'generated/clash_config.freezed.dart';
 part 'generated/clash_config.g.dart';
 
@@ -393,20 +391,15 @@ abstract class Rule with _$Rule {
 }
 
 extension RulesExt on List<Rule> {
-  VM2<List<Rule>, Rule> copyAndPut(Rule rule) {
+  List<Rule> copyAndPut(Rule rule) {
     var newList = List<Rule>.from(this);
     final index = newList.indexWhere((item) => item.id == rule.id);
-    final Rule newRule;
     if (index != -1) {
-      newRule = rule;
       rule = newList[index] = rule;
     } else {
-      newRule = rule.copyWith(
-        order: indexing.generateKeyBetween(null, newList.firstOrNull?.order),
-      );
-      newList.insert(0, newRule);
+      newList.insert(0, rule);
     }
-    return VM2(newList, newRule);
+    return newList;
   }
 }
 

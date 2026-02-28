@@ -150,9 +150,16 @@ class GlobalRules extends _$GlobalRules with AsyncNotifierMixin {
   }
 
   void put(Rule rule) {
-    final vm2 = value.copyAndPut(rule);
-    value = vm2.a;
-    database.rulesDao.putGlobalRule(vm2.b);
+    final Rule newRule;
+    if (rule.order?.isNotEmpty != true) {
+      newRule = rule.copyWith(
+        order: indexing.generateKeyBetween(null, value.firstOrNull?.order),
+      );
+    } else {
+      newRule = rule;
+    }
+    value = value.copyAndPut(newRule);
+    database.rulesDao.putGlobalRule(newRule);
   }
 
   void order(int oldIndex, int newIndex) {
@@ -190,9 +197,16 @@ class ProfileAddedRules extends _$ProfileAddedRules with AsyncNotifierMixin {
   }
 
   void put(Rule rule) {
-    final vm2 = value.copyAndPut(rule);
-    value = vm2.a;
-    database.rulesDao.putProfileAddedRule(profileId, vm2.b);
+    final Rule newRule;
+    if (rule.order?.isNotEmpty != true) {
+      newRule = rule.copyWith(
+        order: indexing.generateKeyBetween(null, value.firstOrNull?.order),
+      );
+    } else {
+      newRule = rule;
+    }
+    value = value.copyAndPut(newRule);
+    database.rulesDao.putProfileAddedRule(profileId, newRule);
   }
 
   void delAll(Iterable<int> ruleIds) {
@@ -239,9 +253,16 @@ class ProfileCustomRules extends _$ProfileCustomRules with AsyncNotifierMixin {
   }
 
   void put(Rule rule) {
-    final vm2 = value.copyAndPut(rule);
-    value = vm2.a;
-    database.rulesDao.putProfileCustomRule(profileId, vm2.b);
+    final Rule newRule;
+    if (rule.order?.isNotEmpty != true) {
+      newRule = rule.copyWith(
+        order: indexing.generateKeyBetween(null, value.firstOrNull?.order),
+      );
+    } else {
+      newRule = rule;
+    }
+    value = value.copyAndPut(newRule);
+    database.rulesDao.putProfileCustomRule(profileId, newRule);
   }
 
   void delAll(Iterable<int> ruleIds) {
