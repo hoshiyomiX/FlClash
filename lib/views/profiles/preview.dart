@@ -2,9 +2,6 @@ import 'package:fl_clash/common/task.dart';
 import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/models/profile.dart';
 import 'package:fl_clash/pages/editor.dart';
-import 'package:fl_clash/widgets/fade_box.dart';
-import 'package:fl_clash/widgets/loading.dart';
-import 'package:fl_clash/widgets/scaffold.dart';
 import 'package:flutter/material.dart';
 
 class PreviewProfileView extends StatefulWidget {
@@ -44,20 +41,8 @@ class _PreviewProfileViewState extends State<PreviewProfileView> {
       valueListenable: contentNotifier,
       builder: (_, content, _) {
         final title = widget.profile.realLabel;
-        return FadeBox(
-          child: content == null
-              ? CommonScaffold(
-                  title: title,
-                  key: Key('loading'),
-                  body: Center(
-                    child: SizedBox.square(
-                      dimension: 200,
-                      child: CommonCircleLoading(),
-                    ),
-                  ),
-                )
-              : EditorPage(key: Key('content'), title: title, content: content),
-        );
+
+        return EditorPage(key: Key('content'), title: title, content: content);
       },
     );
   }

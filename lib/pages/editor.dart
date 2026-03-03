@@ -20,7 +20,7 @@ typedef TextEditingValueChangeBuilder = Widget Function(TextEditingValue value);
 
 class EditorPage extends ConsumerStatefulWidget {
   final String title;
-  final String content;
+  final String? content;
   final List<Language> languages;
   final bool supportRemoteDownload;
   final bool titleEditable;
@@ -88,6 +88,18 @@ class _EditorPageState extends ConsumerState<EditorPage> {
         return KeyEventResult.handled;
       }
       return KeyEventResult.ignored;
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final content = widget.content;
+      if (content != null && oldWidget.content != content) {
+        _controller.text = content;
+        _controller.clearHistory();
+      }
     });
   }
 
@@ -256,59 +268,78 @@ class _EditorPageState extends ConsumerState<EditorPage> {
             ),
           ]),
         ),
-        body: CodeEditor(
-          readOnly: readOnly,
-          autofocus: false,
-          showCursorWhenReadOnly: false,
-          findController: _findController,
-          findBuilder: (context, controller, readOnly) => FindPanel(
-            controller: controller,
-            readOnly: readOnly,
-            isMobileView: isMobileView,
-          ),
-          padding: EdgeInsets.only(right: 16),
-          autocompleteSymbols: true,
-          focusNode: _focusNode,
-          scrollbarBuilder: (context, child, details) {
-            return CommonScrollBar(
-              controller: details.controller,
-              child: child,
-            );
-          },
-          toolbarController: _toolbarController,
-          indicatorBuilder:
-              (context, editingController, chunkController, notifier) {
-                return Row(
-                  children: [
-                    DefaultCodeLineNumber(
-                      controller: editingController,
-                      notifier: notifier,
-                    ),
-                    DefaultCodeChunkIndicator(
-                      width: 20,
-                      controller: chunkController,
-                      notifier: notifier,
-                    ),
-                  ],
+        body: Stack(
+          children: [
+            CodeEditor(
+              readOnly: readOnly,
+              autofocus: false,
+              showCursorWhenReadOnly: false,
+              findController: _findController,
+              findBuilder: (context, controller, readOnly) => FindPanel(
+                controller: controller,
+                readOnly: readOnly,
+                isMobileView: isMobileView,
+              ),
+              padding: EdgeInsets.only(right: 16),
+              autocompleteSymbols: true,
+              focusNode: _focusNode,
+              scrollbarBuilder: (context, child, details) {
+                return CommonScrollBar(
+                  controller: details.controller,
+                  child: child,
                 );
               },
-          shortcutsActivatorsBuilder: DefaultCodeShortcutsActivatorsBuilder(),
-          controller: _controller,
-          style: CodeEditorStyle(
-            fontSize: context.textTheme.bodyLarge?.fontSize?.ap,
-            fontFamily: FontFamily.jetBrainsMono.value,
-            codeTheme: CodeHighlightTheme(
-              languages: {
-                if (widget.languages.contains(Language.yaml))
-                  'yaml': CodeHighlightThemeMode(mode: langYaml),
-                if (widget.languages.contains(Language.javaScript))
-                  'javascript': CodeHighlightThemeMode(mode: langJavascript),
-                if (widget.languages.contains(Language.json))
-                  'json': CodeHighlightThemeMode(mode: langJson),
-              },
-              theme: atomOneLightTheme,
+              toolbarController: _toolbarController,
+              indicatorBuilder:
+                  (context, editingController, chunkController, notifier) {
+                    return Row(
+                      children: [
+                        DefaultCodeLineNumber(
+                          controller: editingController,
+                          notifier: notifier,
+                        ),
+                        DefaultCodeChunkIndicator(
+                          width: 20,
+                          controller: chunkController,
+                          notifier: notifier,
+                        ),
+                      ],
+                    );
+                  },
+              shortcutsActivatorsBuilder:
+                  DefaultCodeShortcutsActivatorsBuilder(),
+              controller: _controller,
+              style: CodeEditorStyle(
+                fontSize: context.textTheme.bodyLarge?.fontSize?.ap,
+                fontFamily: FontFamily.jetBrainsMono.value,
+                codeTheme: CodeHighlightTheme(
+                  languages: {
+                    if (widget.languages.contains(Language.yaml))
+                      'yaml': CodeHighlightThemeMode(mode: langYaml),
+                    if (widget.languages.contains(Language.javaScript))
+                      'javascript': CodeHighlightThemeMode(
+                        mode: langJavascript,
+                      ),
+                    if (widget.languages.contains(Language.json))
+                      'json': CodeHighlightThemeMode(mode: langJson),
+                  },
+                  theme: atomOneLightTheme,
+                ),
+              ),
             ),
-          ),
+            FadeBox(
+              child: widget.content == null
+                  ? Container(
+                      color: context.colorScheme.surface,
+                      alignment: Alignment.center,
+                      child: SizedBox.square(
+                        dimension: 200,
+                        child: CommonCircleLoading(),
+                      ),
+                    )
+                  : SizedBox.shrink(),
+            ),
+          ],
         ),
       ),
     );
