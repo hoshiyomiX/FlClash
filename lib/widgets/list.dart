@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
@@ -536,6 +537,26 @@ Widget generateSectionV2({
         borderRadius: BorderRadius.circular(18),
         child: Column(children: [...genItems]),
       ),
+    ],
+  );
+}
+
+Widget generateSectionV3({
+  String? title,
+  required Iterable<Widget> items,
+  List<Widget>? actions,
+  bool separated = true,
+}) {
+  final genItems = items.mapIndexed<Widget>((index, item) {
+    final isFirst = index == 0;
+    final isLast = index == items.length - 1;
+    return CommonInputListItem(title: item, isFirst: isFirst, isLast: isLast);
+  });
+  return Column(
+    children: [
+      if (items.isNotEmpty && title != null)
+        ListHeader(title: title, actions: actions),
+      Column(children: [...genItems]),
     ],
   );
 }

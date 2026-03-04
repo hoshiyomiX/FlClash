@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -609,4 +610,17 @@ String _getScriptPath(String root, String fileName) {
 
 String _getProfilePath(String root, String fileName) {
   return join(root, 'profiles', '$fileName.yaml');
+}
+
+Future<List<T>> mapListTask<T, S>(List<S> results, T Function(S) mapper) async {
+  return await compute<VM2<List<S>, T Function(S)>, List<T>>(
+    _mapListTask,
+    VM2(results, mapper),
+  );
+}
+
+Future<List<T>> _mapListTask<T, S>(VM2<List<S>, T Function(S)> vm2) async {
+  final results = vm2.a;
+  final mapper = vm2.b;
+  return results.map((item) => mapper(item)).toList();
 }

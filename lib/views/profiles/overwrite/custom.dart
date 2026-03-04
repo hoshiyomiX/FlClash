@@ -148,6 +148,20 @@ class _CustomProxyGroupsView extends ConsumerWidget {
     ref.read(proxyGroupsProvider(profileId).notifier).order(oldIndex, newIndex);
   }
 
+  void _handleEditProxyGroup(BuildContext context, ProxyGroup proxyGroup) {
+    showSheet(
+      context: context,
+      props: SheetProps(isScrollControlled: true),
+      builder: (_, type) {
+        return AdaptiveSheetScaffold(
+          type: type,
+          body: _EditCustomProxyGroupView(),
+          title: '编辑',
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final proxyGroups = ref.watch(proxyGroupsProvider(profileId)).value ?? [];
@@ -165,7 +179,9 @@ class _CustomProxyGroupsView extends ConsumerWidget {
               child: CommonCard(
                 radius: 16,
                 padding: EdgeInsets.all(16),
-                onPressed: () {},
+                onPressed: () {
+                  _handleEditProxyGroup(context, proxyGroup);
+                },
                 child: ListTile(
                   minTileHeight: 0,
                   minVerticalPadding: 0,
@@ -190,16 +206,79 @@ class _CustomProxyGroupsView extends ConsumerWidget {
   }
 }
 
+class _EditCustomProxyGroupView extends ConsumerStatefulWidget {
+  const _EditCustomProxyGroupView();
+
+  @override
+  ConsumerState createState() => _EditCustomProxyGroupViewState();
+}
+
+class _EditCustomProxyGroupViewState
+    extends ConsumerState<_EditCustomProxyGroupView> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: appController.viewSize.height * 0.65,
+      child: ListView(
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        children: [
+          generateSectionV3(
+            title: '通用',
+            items: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                spacing: 16,
+                children: [
+                  Text('名称'),
+                  Flexible(
+                    child: TextFormField(
+                      textAlign: TextAlign.end,
+                      decoration: InputDecoration.collapsed(
+                        border: NoInputBorder(),
+                        hintText: '输入代理组名称',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Text('类型'),
+              Text('图标'),
+              Text('从列表中隐藏'),
+              Text('禁用udp'),
+            ],
+          ),
+          generateSectionV3(
+            title: '节点',
+            items: [
+              Text('手动选择代理'),
+              Text('包括所有代理'),
+              Text('包括所有远程代理集'),
+              Text('正则表达式过滤器'),
+              Text('排除类型'),
+              Text('预期状态'),
+            ],
+          ),
+          generateSectionV3(
+            title: '其他',
+            items: [Text('测试链接'), Text('最大失败时间'), Text('懒加载'), Text('测试间隔')],
+          ),
+          generateSectionV3(title: '操作', items: [Text('删除')]),
+        ],
+      ),
+    );
+  }
+}
+
 class _CustomRulesView extends ConsumerStatefulWidget {
   final int profileId;
 
   const _CustomRulesView(this.profileId);
 
   @override
-  ConsumerState createState() => __CustomRulesViewState();
+  ConsumerState createState() => _CustomRulesViewState();
 }
 
-class __CustomRulesViewState extends ConsumerState<_CustomRulesView> {
+class _CustomRulesViewState extends ConsumerState<_CustomRulesView> {
   final _key = utils.id;
 
   void _handleReorder(int oldIndex, int newIndex) {
@@ -244,6 +323,11 @@ class __CustomRulesViewState extends ConsumerState<_CustomRulesView> {
         .read(profileCustomRulesProvider(widget.profileId).notifier)
         .delAll(selectedRules.cast<int>());
     ref.read(selectedItemsProvider(_key).notifier).value = {};
+  }
+
+  @override
+  void initState() {
+    super.initState();
   }
 
   @override

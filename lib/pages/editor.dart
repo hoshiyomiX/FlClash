@@ -192,7 +192,7 @@ class _EditorPageState extends ConsumerState<EditorPage> {
             enabled: widget.titleEditable,
             controller: _titleController,
             decoration: InputDecoration(
-              border: _NoInputBorder(),
+              border: NoInputBorder(),
               counter: SizedBox(),
               hintText: appLocalizations.unnamed,
             ),
@@ -637,55 +637,6 @@ class ContextMenuControllerImpl implements SelectionToolbarController {
     );
     Overlay.of(context).insert(_overlayEntry!);
   }
-}
-
-class _NoInputBorder extends InputBorder {
-  const _NoInputBorder() : super(borderSide: BorderSide.none);
-
-  @override
-  _NoInputBorder copyWith({BorderSide? borderSide}) => const _NoInputBorder();
-
-  @override
-  bool get isOutline => false;
-
-  @override
-  EdgeInsetsGeometry get dimensions => EdgeInsets.zero;
-
-  @override
-  _NoInputBorder scale(double t) => const _NoInputBorder();
-
-  @override
-  Path getInnerPath(Rect rect, {TextDirection? textDirection}) {
-    return Path()..addRect(rect);
-  }
-
-  @override
-  Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
-    return Path()..addRect(rect);
-  }
-
-  @override
-  void paintInterior(
-    Canvas canvas,
-    Rect rect,
-    Paint paint, {
-    TextDirection? textDirection,
-  }) {
-    canvas.drawRect(rect, paint);
-  }
-
-  @override
-  bool get preferPaintInterior => true;
-
-  @override
-  void paint(
-    Canvas canvas,
-    Rect rect, {
-    double? gapStart,
-    double gapExtent = 0.0,
-    double gapPercentage = 0.0,
-    TextDirection? textDirection,
-  }) {}
 }
 
 class _ImportOptionsDialog extends StatefulWidget {

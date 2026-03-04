@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -133,5 +134,61 @@ extension JoinedSelectStatementExt<T extends HasResultSet, D>
     return map((row) => row.read(countExp)!);
   }
 }
+
+// extension _AsyncMapPerSubscription<S> on Stream<S> {
+//   Stream<T> asyncMapPerSubscription<T>(FutureOr<T> Function(S) mapper) {
+//     return Stream.multi((listener) {
+//       late StreamSubscription<S> subscription;
+//
+//       void onData(S original) {
+//         subscription.pause();
+//         Future.sync(() => mapper(original))
+//             .then(listener.addSync, onError: listener.addErrorSync)
+//             .whenComplete(subscription.resume);
+//       }
+//
+//       subscription = listen(
+//         onData,
+//         onError: listener.addErrorSync,
+//         onDone: listener.closeSync,
+//         cancelOnError: false, // Determined by downstream subscription
+//       );
+//
+//       listener
+//         ..onPause = subscription.pause
+//         ..onResume = subscription.resume
+//         ..onCancel = subscription.cancel;
+//     }, isBroadcast: isBroadcast);
+//   }
+// }
+
+// extension SelectableExt<T> on Selectable<T> {
+//   Selectable<N> isolateMap<N>(N Function(T) mapper) {
+//     return _IsolateMappedSelectable<T, N>(this, mapper);
+//   }
+// }
+//
+// class _IsolateMappedSelectable<S, T> extends Selectable<T> {
+//   final Selectable<S> _source;
+//   final T Function(S) _mapper;
+//
+//   _IsolateMappedSelectable(this._source, this._mapper);
+//
+//   @override
+//   Future<List<T>> get() {
+//     return _source.get().then(_mapResults);
+//   }
+//
+//   @override
+//   Stream<List<T>> watch() {
+//     return _AsyncMapPerSubscription(
+//       _source.watch(),
+//     ).asyncMapPerSubscription(_mapResults);
+//   }
+//
+//   Future<List<T>> _mapResults(List<S> results) async {
+//     return mapListTask(results, _mapper);
+//   }
+// }
 
 final database = Database();

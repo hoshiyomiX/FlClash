@@ -113,7 +113,7 @@ abstract class ProxyGroup with _$ProxyGroup {
     int? timeout,
     @JsonKey(name: 'max-failed-times') int? maxFailedTimes,
     String? filter,
-    @JsonKey(name: 'expected-filter') String? excludeFilter,
+    @JsonKey(name: 'exclude-filter') String? excludeFilter,
     @JsonKey(name: 'exclude-type') String? excludeType,
     @JsonKey(name: 'expected-status') String? expectedStatus,
     @JsonKey(name: 'include-all') bool? includeAll,

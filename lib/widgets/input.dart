@@ -818,3 +818,52 @@ class _AddDialogState extends State<AddDialog> {
     );
   }
 }
+
+class NoInputBorder extends InputBorder {
+  const NoInputBorder() : super(borderSide: BorderSide.none);
+
+  @override
+  NoInputBorder copyWith({BorderSide? borderSide}) => const NoInputBorder();
+
+  @override
+  bool get isOutline => false;
+
+  @override
+  EdgeInsetsGeometry get dimensions => EdgeInsets.zero;
+
+  @override
+  NoInputBorder scale(double t) => const NoInputBorder();
+
+  @override
+  Path getInnerPath(Rect rect, {TextDirection? textDirection}) {
+    return Path()..addRect(rect);
+  }
+
+  @override
+  Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
+    return Path()..addRect(rect);
+  }
+
+  @override
+  void paintInterior(
+    Canvas canvas,
+    Rect rect,
+    Paint paint, {
+    TextDirection? textDirection,
+  }) {
+    canvas.drawRect(rect, paint);
+  }
+
+  @override
+  bool get preferPaintInterior => true;
+
+  @override
+  void paint(
+    Canvas canvas,
+    Rect rect, {
+    double? gapStart,
+    double gapExtent = 0.0,
+    double gapPercentage = 0.0,
+    TextDirection? textDirection,
+  }) {}
+}

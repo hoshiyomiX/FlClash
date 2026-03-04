@@ -216,6 +216,7 @@ class RulesDao extends DatabaseAccessor<Database> with _$RulesDaoMixin {
 
   Selectable<Rule> _get({int? profileId, RuleScene? scene}) {
     final query = _getSelectStatement(profileId: profileId, scene: scene);
+
     return query.map((row) {
       return row.readTable(rules).toRule(row.read(profileRuleLinks.order));
     });

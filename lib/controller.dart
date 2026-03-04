@@ -210,6 +210,10 @@ extension StateControllerExt on AppController {
     return _ref.read(isMobileViewProvider);
   }
 
+  Size get viewSize {
+    return _ref.read(viewSizeProvider);
+  }
+
   bool get isStart {
     return _ref.read(isStartProvider);
   }
