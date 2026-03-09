@@ -82,9 +82,8 @@ class ProxiesTabViewState extends ConsumerState<ProxiesTabView>
     showSheet(
       context: context,
       props: SheetProps(isScrollControlled: false),
-      builder: (_, type) {
+      builder: (_) {
         return AdaptiveSheetScaffold(
-          type: type,
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Consumer(

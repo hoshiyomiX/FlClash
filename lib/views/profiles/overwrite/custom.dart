@@ -151,13 +151,13 @@ class _CustomProxyGroupsView extends ConsumerWidget {
   void _handleEditProxyGroup(BuildContext context, ProxyGroup proxyGroup) {
     showSheet(
       context: context,
-      props: SheetProps(isScrollControlled: true),
-      builder: (_, type) {
-        return AdaptiveSheetScaffold(
-          type: type,
-          body: _EditCustomProxyGroupView(),
-          title: '编辑',
-        );
+      props: SheetProps(
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        maxWidth: 400,
+      ),
+      builder: (_) {
+        return _EditCustomProxyGroupNestedSheet(proxyGroup);
       },
     );
   }
@@ -206,8 +206,56 @@ class _CustomProxyGroupsView extends ConsumerWidget {
   }
 }
 
+class _EditCustomProxyGroupNestedSheet extends StatelessWidget {
+  final ProxyGroup proxyGroup;
+
+  const _EditCustomProxyGroupNestedSheet(this.proxyGroup);
+
+  @override
+  Widget build(BuildContext context) {
+    final nestedNavigator = Navigator(
+      onGenerateInitialRoutes: (navigator, initialRoute) {
+        return [
+          PagedSheetRoute(
+            builder: (context) {
+              return _EditCustomProxyGroupView(proxyGroup);
+            },
+          ),
+        ];
+      },
+    );
+    final isBottomSheet =
+        SheetTypeProvider.of(context)?.type == SheetType.bottomSheet;
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ),
+        SheetViewport(
+          child: PagedSheet(
+            decoration: MaterialSheetDecoration(
+              size: SheetSize.stretch,
+              borderRadius: isBottomSheet
+                  ? BorderRadius.vertical(top: Radius.circular(28))
+                  : BorderRadius.zero,
+              clipBehavior: Clip.antiAlias,
+            ),
+            navigator: nestedNavigator,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _EditCustomProxyGroupView extends ConsumerStatefulWidget {
-  const _EditCustomProxyGroupView();
+  final ProxyGroup proxyGroup;
+
+  const _EditCustomProxyGroupView(this.proxyGroup);
 
   @override
   ConsumerState createState() => _EditCustomProxyGroupViewState();
@@ -215,8 +263,50 @@ class _EditCustomProxyGroupView extends ConsumerStatefulWidget {
 
 class _EditCustomProxyGroupViewState
     extends ConsumerState<_EditCustomProxyGroupView> {
-  Widget _buildItem({required Widget title, Widget? trailing}) {
+  final _nameController = TextEditingController();
+  final _hideController = ValueNotifier<bool>(false);
+  final _disableUDPController = ValueNotifier<bool>(false);
+  final _typeUDPController = ValueNotifier<GroupType>(GroupType.Selector);
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController.text = widget.proxyGroup.name;
+    _hideController.value = widget.proxyGroup.hidden ?? false;
+    _disableUDPController.value = widget.proxyGroup.disableUDP ?? false;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _hideController.dispose();
+    _disableUDPController.dispose();
+    _typeUDPController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _showTypeOptions() async {
+    final value = await globalState.showCommonDialog<GroupType>(
+      child: OptionsDialog<GroupType>(
+        title: '类型',
+        options: GroupType.values,
+        textBuilder: (item) => item.name,
+        value: _typeUDPController.value,
+      ),
+    );
+    if (value == null) {
+      return;
+    }
+    _typeUDPController.value = value;
+  }
+
+  Widget _buildItem({
+    required Widget title,
+    Widget? trailing,
+    final VoidCallback? onPressed,
+  }) {
     return CommonInputListItem(
+      onPressed: onPressed,
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         spacing: 16,
@@ -235,130 +325,200 @@ class _EditCustomProxyGroupViewState
     );
   }
 
+  void _handleToProxies() {
+    final isBottomSheet =
+        SheetTypeProvider.of(context)?.type == SheetType.bottomSheet;
+    Navigator.of(context).push(
+      PagedSheetRoute(
+        builder: (context) => SizedBox(
+          height: isBottomSheet
+              ? appController.viewSize.height * 0.85
+              : double.maxFinite,
+          child: AdaptiveSheetScaffold(
+            title: '选择代理',
+            body: Center(child: Text('123')),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: appController.viewSize.height * 0.65,
-      child: ListView(
-        padding: EdgeInsets.symmetric(horizontal: 16).copyWith(bottom: 24),
-        children: [
-          generateSectionV3(
-            title: '通用',
-            items: [
-              _buildItem(
-                title: Text('名称'),
-                trailing: TextFormField(
-                  textAlign: TextAlign.end,
-                  decoration: InputDecoration.collapsed(
-                    border: NoInputBorder(),
-                    hintText: '输入代理组名称',
+    final isBottomSheet =
+        SheetTypeProvider.of(context)?.type == SheetType.bottomSheet;
+    return AdaptiveSheetScaffold(
+      body: SizedBox(
+        height: isBottomSheet
+            ? appController.viewSize.height * 0.65
+            : double.maxFinite,
+        child: ListView(
+          padding: EdgeInsets.symmetric(horizontal: 16).copyWith(bottom: 24),
+          children: [
+            generateSectionV3(
+              title: '通用',
+              items: [
+                _buildItem(
+                  title: Text('名称'),
+                  trailing: TextFormField(
+                    controller: _nameController,
+                    textAlign: TextAlign.end,
+                    decoration: InputDecoration.collapsed(
+                      border: NoInputBorder(),
+                      hintText: '输入代理组名称',
+                    ),
                   ),
                 ),
-              ),
-              _buildItem(title: Text('类型')),
-              _buildItem(title: Text('图标')),
-              _buildItem(
-                title: Text('从列表中隐藏'),
-                trailing: Switch(value: false, onChanged: (_) {}),
-              ),
-              _buildItem(
-                title: Text('禁用UDP'),
-                trailing: Switch(value: false, onChanged: (_) {}),
-              ),
-            ],
-          ),
-          generateSectionV3(
-            title: '节点',
-            items: [
-              _buildItem(title: Text('选择代理')),
-              _buildItem(title: Text('选择代理集')),
-              _buildItem(
-                title: Text('节点过滤器'),
-                trailing: TextFormField(
-                  textAlign: TextAlign.end,
-                  decoration: InputDecoration.collapsed(
-                    border: NoInputBorder(),
-                    hintText: '可选',
+                _buildItem(
+                  title: Text('类型'),
+                  onPressed: () {
+                    _showTypeOptions();
+                  },
+                  trailing: ValueListenableBuilder(
+                    valueListenable: _typeUDPController,
+                    builder: (_, type, _) {
+                      return Text(type.name);
+                    },
                   ),
                 ),
-              ),
-              _buildItem(
-                title: Text('排除过滤器'),
-                trailing: TextFormField(
-                  textAlign: TextAlign.end,
-                  decoration: InputDecoration.collapsed(
-                    border: NoInputBorder(),
-                    hintText: '可选',
+                _buildItem(title: Text('图标')),
+                _buildItem(
+                  title: Text('从列表中隐藏'),
+                  onPressed: () {
+                    _hideController.value = !_hideController.value;
+                  },
+                  trailing: ValueListenableBuilder(
+                    valueListenable: _hideController,
+                    builder: (_, value, _) {
+                      return Switch(
+                        value: value,
+                        onChanged: (value) {
+                          _hideController.value = value;
+                        },
+                      );
+                    },
                   ),
                 ),
-              ),
-              _buildItem(
-                title: Text('排除类型'),
-                trailing: TextFormField(
-                  textAlign: TextAlign.end,
-                  decoration: InputDecoration.collapsed(
-                    border: NoInputBorder(),
-                    hintText: '可选',
+                _buildItem(
+                  title: Text('禁用UDP'),
+                  onPressed: () {
+                    _disableUDPController.value = !_disableUDPController.value;
+                  },
+                  trailing: ValueListenableBuilder(
+                    valueListenable: _disableUDPController,
+                    builder: (_, value, _) {
+                      return Switch(
+                        value: value,
+                        onChanged: (value) {
+                          _disableUDPController.value = value;
+                        },
+                      );
+                    },
                   ),
                 ),
-              ),
-              _buildItem(
-                title: Text('预期状态'),
-                trailing: TextFormField(
-                  textAlign: TextAlign.end,
-                  decoration: InputDecoration.collapsed(
-                    border: NoInputBorder(),
-                    hintText: '可选',
+              ],
+            ),
+            generateSectionV3(
+              title: '节点',
+              items: [
+                _buildItem(title: Text('选择代理'), onPressed: _handleToProxies),
+                _buildItem(title: Text('选择代理集')),
+                _buildItem(
+                  title: Text('节点过滤器'),
+                  trailing: TextFormField(
+                    textAlign: TextAlign.end,
+                    decoration: InputDecoration.collapsed(
+                      border: NoInputBorder(),
+                      hintText: '可选',
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          generateSectionV3(
-            title: '其他',
-            items: [
-              _buildItem(
-                title: Text('测速链接'),
-                trailing: TextFormField(
-                  textAlign: TextAlign.end,
-                  decoration: InputDecoration.collapsed(
-                    border: NoInputBorder(),
-                    hintText: '可选',
+                _buildItem(
+                  title: Text('排除过滤器'),
+                  trailing: TextFormField(
+                    textAlign: TextAlign.end,
+                    decoration: InputDecoration.collapsed(
+                      border: NoInputBorder(),
+                      hintText: '可选',
+                    ),
                   ),
                 ),
-              ),
-              _buildItem(
-                title: Text('最大失败次数'),
-                trailing: TextFormField(
-                  textAlign: TextAlign.end,
-                  decoration: InputDecoration.collapsed(
-                    border: NoInputBorder(),
-                    hintText: '可选',
+                _buildItem(
+                  title: Text('排除类型'),
+                  trailing: TextFormField(
+                    textAlign: TextAlign.end,
+                    decoration: InputDecoration.collapsed(
+                      border: NoInputBorder(),
+                      hintText: '可选',
+                    ),
                   ),
                 ),
-              ),
-              _buildItem(
-                title: Text('使用时测速'),
-                trailing: Switch(value: false, onChanged: (_) {}),
-              ),
-              _buildItem(
-                title: Text('测速间隔'),
-                trailing: TextFormField(
-                  textAlign: TextAlign.end,
-                  decoration: InputDecoration.collapsed(
-                    border: NoInputBorder(),
-                    hintText: '可选',
+                _buildItem(
+                  title: Text('预期状态'),
+                  trailing: TextFormField(
+                    textAlign: TextAlign.end,
+                    decoration: InputDecoration.collapsed(
+                      border: NoInputBorder(),
+                      hintText: '可选',
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          generateSectionV3(
-            title: '操作',
-            items: [_buildItem(title: Text('删除'))],
-          ),
-        ],
+              ],
+            ),
+            generateSectionV3(
+              title: '其他',
+              items: [
+                _buildItem(
+                  title: Text('测速链接'),
+                  trailing: TextFormField(
+                    textAlign: TextAlign.end,
+                    decoration: InputDecoration.collapsed(
+                      border: NoInputBorder(),
+                      hintText: '可选',
+                    ),
+                  ),
+                ),
+                _buildItem(
+                  title: Text('最大失败次数'),
+                  trailing: TextFormField(
+                    textAlign: TextAlign.end,
+                    decoration: InputDecoration.collapsed(
+                      border: NoInputBorder(),
+                      hintText: '可选',
+                    ),
+                  ),
+                ),
+                _buildItem(
+                  title: Text('使用时测速'),
+                  trailing: Switch(value: false, onChanged: (_) {}),
+                ),
+                _buildItem(
+                  title: Text('测速间隔'),
+                  trailing: TextFormField(
+                    textAlign: TextAlign.end,
+                    decoration: InputDecoration.collapsed(
+                      border: NoInputBorder(),
+                      hintText: '可选',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            generateSectionV3(
+              title: '操作',
+              items: [
+                _buildItem(
+                  title: Text('删除'),
+                  onPressed: () {
+                    _disableUDPController.value = !_disableUDPController.value;
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
+      title: '编辑',
     );
   }
 }

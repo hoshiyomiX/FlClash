@@ -16,9 +16,8 @@ class TUNButton extends StatelessWidget {
         onPressed: () {
           showSheet(
             context: context,
-            builder: (_, type) {
+            builder: (_) {
               return AdaptiveSheetScaffold(
-                type: type,
                 body: generateListView(
                   generateSection(
                     items: [
@@ -92,9 +91,8 @@ class SystemProxyButton extends StatelessWidget {
         onPressed: () {
           showSheet(
             context: context,
-            builder: (_, type) {
+            builder: (_) {
               return AdaptiveSheetScaffold(
-                type: type,
                 body: generateListView(
                   generateSection(
                     items: [SystemProxyItem(), BypassDomainItem()],
@@ -165,9 +163,8 @@ class VpnButton extends StatelessWidget {
         onPressed: () {
           showSheet(
             context: context,
-            builder: (_, type) {
+            builder: (_) {
               return AdaptiveSheetScaffold(
-                type: type,
                 body: generateListView(
                   generateSection(
                     items: [

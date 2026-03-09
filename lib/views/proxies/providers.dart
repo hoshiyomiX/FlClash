@@ -15,9 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 typedef UpdatingMap = Map<String, bool>;
 
 class ProvidersView extends ConsumerStatefulWidget {
-  final SheetType type;
-
-  const ProvidersView({super.key, required this.type});
+  const ProvidersView({super.key});
 
   @override
   ConsumerState<ProvidersView> createState() => _ProvidersViewState();
@@ -66,7 +64,6 @@ class _ProvidersViewState extends ConsumerState<ProvidersView> {
           icon: const Icon(Icons.sync),
         ),
       ],
-      type: widget.type,
       body: generateListView([...proxySection, ...ruleSection]),
       title: appLocalizations.providers,
     );

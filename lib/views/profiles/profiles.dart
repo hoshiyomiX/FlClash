@@ -46,9 +46,8 @@ class _ProfilesViewState extends State<ProfilesView> {
   void _handleShowAddExtendPage() {
     showExtend(
       globalState.navigatorKey.currentState!.context,
-      builder: (_, type) {
+      builder: (_) {
         return AdaptiveSheetScaffold(
-          type: type,
           body: AddProfileView(
             context: globalState.navigatorKey.currentState!.context,
           ),
@@ -94,11 +93,8 @@ class _ProfilesViewState extends State<ProfilesView> {
               onPressed: () {
                 showSheet(
                   context: context,
-                  builder: (_, type) {
-                    return ReorderableProfilesSheet(
-                      type: type,
-                      profiles: profiles,
-                    );
+                  builder: (_) {
+                    return ReorderableProfilesSheet(profiles: profiles);
                   },
                 );
               },
@@ -212,9 +208,8 @@ class ProfileItem extends StatelessWidget {
   void _handleShowEditExtendPage(BuildContext context) {
     showExtend(
       context,
-      builder: (_, type) {
+      builder: (_) {
         return AdaptiveSheetScaffold(
-          type: type,
           body: EditProfileView(profile: profile, context: context),
           title: '${appLocalizations.edit}${appLocalizations.profile}',
         );
@@ -426,13 +421,8 @@ class ProfileItem extends StatelessWidget {
 
 class ReorderableProfilesSheet extends StatefulWidget {
   final List<Profile> profiles;
-  final SheetType type;
 
-  const ReorderableProfilesSheet({
-    super.key,
-    required this.profiles,
-    required this.type,
-  });
+  const ReorderableProfilesSheet({super.key, required this.profiles});
 
   @override
   State<ReorderableProfilesSheet> createState() =>
@@ -479,10 +469,11 @@ class _ReorderableProfilesSheetState extends State<ReorderableProfilesSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomSheet =
+        SheetTypeProvider.of(context)?.type == SheetType.bottomSheet;
     return AdaptiveSheetScaffold(
-      type: widget.type,
       actions: [
-        if (widget.type == SheetType.bottomSheet)
+        if (bottomSheet)
           IconButton.filledTonal(
             onPressed: _handleSave,
             style: IconButton.styleFrom(

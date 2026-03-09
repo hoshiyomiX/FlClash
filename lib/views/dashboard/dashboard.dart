@@ -178,12 +178,11 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
 
   void _showAddWidgetsModal() {
     showSheet(
-      builder: (_, type) {
+      builder: (_) {
         return ValueListenableBuilder(
           valueListenable: _addedWidgetsNotifier,
           builder: (_, value, _) {
             return AdaptiveSheetScaffold(
-              type: type,
               body: _AddDashboardWidgetModal(
                 items: value,
                 onAdd: (gridItem) {
@@ -211,7 +210,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
     if (currentState == null) {
       return;
     }
-    if (mounted) {
+    if (mounted && currentState.children.isNotEmpty) {
       await currentState.isTransformCompleter;
       final dashboardWidgets = currentState.children
           .map((item) => DashboardWidget.getDashboardWidget(item))
@@ -263,15 +262,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                         crossAxisCount: columns,
                         crossAxisSpacing: spacing,
                         mainAxisSpacing: spacing,
-                        children: [
-                          ...dashboardState.dashboardWidgets
-                              .where(
-                                (item) => item.platforms.contains(
-                                  SupportPlatform.currentPlatform,
-                                ),
-                              )
-                              .map((item) => item.widget),
-                        ],
+                        children: children,
                         onUpdate: () {
                           _handleSave();
                         },

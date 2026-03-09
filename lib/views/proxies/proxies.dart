@@ -53,9 +53,8 @@ class _ProxiesViewState extends ConsumerState<ProxiesView> {
                 showSheet(
                   context: context,
                   props: SheetProps(isScrollControlled: true),
-                  builder: (_, type) {
+                  builder: (_) {
                     return AdaptiveSheetScaffold(
-                      type: type,
                       body: const ProxiesSetting(),
                       title: appLocalizations.settings,
                     );
@@ -70,8 +69,8 @@ class _ProxiesViewState extends ConsumerState<ProxiesView> {
                 onPressed: () {
                   showExtend(
                     context,
-                    builder: (_, type) {
-                      return ProvidersView(type: type);
+                    builder: (_) {
+                      return ProvidersView();
                     },
                   );
                 },

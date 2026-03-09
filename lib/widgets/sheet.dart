@@ -1,5 +1,6 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
+import 'package:fl_clash/widgets/inherited.dart';
 import 'package:flutter/material.dart';
 
 import 'scaffold.dart';
@@ -11,11 +12,13 @@ class SheetProps {
   final double? maxHeight;
   final bool isScrollControlled;
   final bool useSafeArea;
+  final Color? backgroundColor;
   final bool blur;
 
   const SheetProps({
     this.maxWidth,
     this.maxHeight,
+    this.backgroundColor,
     this.useSafeArea = true,
     this.isScrollControlled = false,
     this.blur = true,
@@ -39,11 +42,9 @@ class ExtendProps {
 
 enum SheetType { page, bottomSheet, sideSheet }
 
-typedef SheetBuilder = Widget Function(BuildContext context, SheetType type);
-
 Future<T?> showSheet<T>({
   required BuildContext context,
-  required SheetBuilder builder,
+  required WidgetBuilder builder,
   SheetProps props = const SheetProps(),
 }) {
   final isMobile = appController.isMobile;
@@ -52,8 +53,12 @@ Future<T?> showSheet<T>({
       context: context,
       isScrollControlled: props.isScrollControlled,
       builder: (_) {
-        return builder(context, SheetType.bottomSheet);
+        return SheetTypeProvider(
+          type: SheetType.bottomSheet,
+          child: builder(context),
+        );
       },
+      backgroundColor: props.backgroundColor,
       showDragHandle: false,
       useSafeArea: props.useSafeArea,
     ),
@@ -61,10 +66,14 @@ Future<T?> showSheet<T>({
       useSafeArea: props.useSafeArea,
       isScrollControlled: props.isScrollControlled,
       context: context,
+      backgroundColor: props.backgroundColor,
       constraints: BoxConstraints(maxWidth: props.maxWidth ?? 360),
       filter: props.blur ? commonFilter : null,
       builder: (_) {
-        return builder(context, SheetType.sideSheet);
+        return SheetTypeProvider(
+          type: SheetType.sideSheet,
+          child: builder(context),
+        );
       },
     ),
   };
@@ -72,37 +81,39 @@ Future<T?> showSheet<T>({
 
 Future<T?> showExtend<T>(
   BuildContext context, {
-  required SheetBuilder builder,
+  required WidgetBuilder builder,
   ExtendProps props = const ExtendProps(),
 }) {
   final isMobile = appController.isMobile;
   return switch (isMobile || props.forceFull) {
-    true => BaseNavigator.push(context, builder(context, SheetType.page)),
+    true => BaseNavigator.push(
+      context,
+      SheetTypeProvider(type: SheetType.page, child: builder(context)),
+    ),
     false => showModalSideSheet<T>(
       useSafeArea: props.useSafeArea,
       context: context,
       constraints: BoxConstraints(maxWidth: props.maxWidth ?? 360),
       filter: props.blur ? commonFilter : null,
       builder: (context) {
-        return builder(context, SheetType.sideSheet);
+        return SheetTypeProvider(
+          type: SheetType.sideSheet,
+          child: builder(context),
+        );
       },
     ),
   };
 }
 
 class AdaptiveSheetScaffold extends StatefulWidget {
-  final SheetType type;
   final Widget body;
   final String title;
-  final bool? centerTitle;
   final List<Widget> actions;
 
   const AdaptiveSheetScaffold({
     super.key,
-    required this.type,
     required this.body,
     required this.title,
-    this.centerTitle,
     this.actions = const [],
   });
 
@@ -114,8 +125,9 @@ class _AdaptiveSheetScaffoldState extends State<AdaptiveSheetScaffold> {
   @override
   Widget build(BuildContext context) {
     final backgroundColor = context.colorScheme.surface;
-    final bottomSheet = widget.type == SheetType.bottomSheet;
-    final sideSheet = widget.type == SheetType.sideSheet;
+    final type = SheetTypeProvider.of(context)?.type ?? SheetType.bottomSheet;
+    final bottomSheet = type == SheetType.bottomSheet;
+    final sideSheet = type == SheetType.sideSheet;
     final appBar = AppBar(
       forceMaterialTransparency: bottomSheet ? true : false,
       automaticallyImplyLeading: bottomSheet
@@ -123,10 +135,12 @@ class _AdaptiveSheetScaffoldState extends State<AdaptiveSheetScaffold> {
           : widget.actions.isEmpty && sideSheet
           ? false
           : true,
-      centerTitle:
-          widget.centerTitle ?? (bottomSheet && widget.actions.isEmpty),
+      centerTitle: true,
       backgroundColor: backgroundColor,
       title: Text(widget.title),
+      titleTextStyle: bottomSheet
+          ? context.textTheme.titleLarge?.adjustSize(-4)
+          : null,
       actions: genActions([
         if (widget.actions.isEmpty && sideSheet) CloseButton(),
         ...widget.actions,

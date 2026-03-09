@@ -114,9 +114,8 @@ class _AccessViewState extends ConsumerState<AccessView> {
     await showSheet<int>(
       context: context,
       props: SheetProps(isScrollControlled: true),
-      builder: (_, type) {
+      builder: (_) {
         return AdaptiveSheetScaffold(
-          type: type,
           body: AccessControlPanel(),
           title: appLocalizations.accessControlSettings,
         );

@@ -144,9 +144,8 @@ class TrackerInfoItem extends ConsumerWidget {
       onTap: () {
         showExtend(
           context,
-          builder: (_, type) {
+          builder: (_) {
             return AdaptiveSheetScaffold(
-              type: type,
               body: TrackerInfoDetailView(trackerInfo: trackerInfo),
               title: detailTitle,
             );

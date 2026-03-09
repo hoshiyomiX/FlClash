@@ -314,7 +314,7 @@ class ListItem<T> extends StatelessWidget {
                   maxWidth: openDelegate.maxWidth,
                   forceFull: openDelegate.forceFull,
                 ),
-                builder: (_, type) {
+                builder: (_) {
                   return child;
                 },
               );
@@ -346,7 +346,7 @@ class ListItem<T> extends StatelessWidget {
               blur: nextDelegate.blur,
               maxWidth: nextDelegate.maxWidth,
             ),
-            builder: (_, type) {
+            builder: (_) {
               return child;
             },
           );
