@@ -18,6 +18,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smooth_sheets/smooth_sheets.dart';
 
 part 'custom.dart';
+part 'custom_proxies.dart';
+part 'script.dart';
+part 'standard.dart';
 part 'widgets.dart';
 
 class OverwriteView extends ConsumerStatefulWidget {
@@ -45,19 +48,20 @@ class _OverwriteViewState extends ConsumerState<OverwriteView> {
 
   @override
   Widget build(BuildContext context) {
-    return CommonScaffold(
-      title: appLocalizations.override,
-      actions: [
-        CommonMinFilledButtonTheme(
-          child: FilledButton(
-            onPressed: _handlePreview,
-            child: Text(appLocalizations.preview),
+    return ProfileIdProvider(
+      profileId: widget.profileId,
+      child: CommonScaffold(
+        title: appLocalizations.override,
+        actions: [
+          CommonMinFilledButtonTheme(
+            child: FilledButton(
+              onPressed: _handlePreview,
+              child: Text(appLocalizations.preview),
+            ),
           ),
-        ),
-        SizedBox(width: 8),
-      ],
-      body: CustomScrollView(
-        slivers: [_Title(widget.profileId), _Content(widget.profileId)],
+          SizedBox(width: 8),
+        ],
+        body: CustomScrollView(slivers: [_Title(), _Content()]),
       ),
     );
   }
@@ -70,9 +74,7 @@ class _OverwriteViewState extends ConsumerState<OverwriteView> {
 }
 
 class _Title extends ConsumerWidget {
-  final int profileId;
-
-  const _Title(this.profileId);
+  const _Title();
 
   String _getTitle(OverwriteType type) {
     return switch (type) {
@@ -98,7 +100,7 @@ class _Title extends ConsumerWidget {
     };
   }
 
-  void _handleChangeType(WidgetRef ref, OverwriteType type) {
+  void _handleChangeType(WidgetRef ref, int profileId, OverwriteType type) {
     ref.read(profilesProvider.notifier).updateProfile(profileId, (state) {
       return state.copyWith(overwriteType: type);
     });
@@ -106,6 +108,7 @@ class _Title extends ConsumerWidget {
 
   @override
   Widget build(context, ref) {
+    final profileId = ProfileIdProvider.of(context)!.profileId;
     final overwriteType = ref.watch(overwriteTypeProvider(profileId));
     return SliverToBoxAdapter(
       child: Column(
@@ -122,7 +125,7 @@ class _Title extends ConsumerWidget {
                   CommonCard(
                     isSelected: overwriteType == type,
                     onPressed: () {
-                      _handleChangeType(ref, type);
+                      _handleChangeType(ref, profileId, type);
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(16),
@@ -157,365 +160,17 @@ class _Title extends ConsumerWidget {
 }
 
 class _Content extends ConsumerWidget {
-  final int profileId;
-
-  const _Content(this.profileId);
+  const _Content();
 
   @override
   Widget build(BuildContext context, ref) {
+    final profileId = ProfileIdProvider.of(context)!.profileId;
     final overwriteType = ref.watch(overwriteTypeProvider(profileId));
+    ref.listen(clashConfigProvider(profileId), (_, _) {});
     return switch (overwriteType) {
-      OverwriteType.standard => _StandardContent(profileId),
-      OverwriteType.script => _ScriptContent(profileId),
-      OverwriteType.custom => _CustomContent(profileId),
+      OverwriteType.standard => _StandardContent(),
+      OverwriteType.script => _ScriptContent(),
+      OverwriteType.custom => _CustomContent(),
     };
-  }
-}
-
-class _StandardContent extends ConsumerStatefulWidget {
-  final int profileId;
-
-  const _StandardContent(this.profileId);
-
-  @override
-  ConsumerState createState() => _StandardContentState();
-}
-
-class _StandardContentState extends ConsumerState<_StandardContent> {
-  final _key = utils.id;
-
-  Future<void> _handleAddOrUpdate([Rule? rule]) async {
-    final res = await globalState.showCommonDialog<Rule>(
-      child: AddOrEditRuleDialog(rule: rule),
-    );
-    if (res == null) {
-      return;
-    }
-    ref.read(profileAddedRulesProvider(widget.profileId).notifier).put(res);
-  }
-
-  void _handleSelected(int ruleId) {
-    ref.read(selectedItemsProvider(_key).notifier).update((selectedRules) {
-      final newSelectedRules = Set<int>.from(selectedRules)
-        ..addOrRemove(ruleId);
-      return newSelectedRules;
-    });
-  }
-
-  void _handleSelectAll() {
-    final ids =
-        ref
-            .read(profileAddedRulesProvider(widget.profileId))
-            .value
-            ?.map((item) => item.id)
-            .toSet() ??
-        {};
-    ref.read(selectedItemsProvider(_key).notifier).update((selected) {
-      return selected.containsAll(ids) ? {} : ids;
-    });
-  }
-
-  Future<void> _handleDelete() async {
-    final res = await globalState.showMessage(
-      title: appLocalizations.tip,
-      message: TextSpan(
-        text: appLocalizations.deleteMultipTip(appLocalizations.rule),
-      ),
-    );
-    if (res != true) {
-      return;
-    }
-    final selectedRules = ref.read(selectedItemsProvider(_key));
-    ref
-        .read(profileAddedRulesProvider(widget.profileId).notifier)
-        .delAll(selectedRules.cast<int>());
-    ref.read(selectedItemsProvider(_key).notifier).value = {};
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final addedRules =
-        ref.watch(profileAddedRulesProvider(widget.profileId)).value ?? [];
-    final selectedRules = ref.watch(selectedItemsProvider(_key));
-    return CommonPopScope(
-      onPop: (_) {
-        if (selectedRules.isNotEmpty) {
-          ref.read(selectedItemsProvider(_key).notifier).value = {};
-          return false;
-        }
-        Navigator.of(context).pop();
-        return false;
-      },
-      child: SliverMainAxisGroup(
-        slivers: [
-          SliverToBoxAdapter(child: SizedBox(height: 24)),
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                InfoHeader(
-                  info: Info(label: appLocalizations.addedRules),
-                  actions: [
-                    if (selectedRules.isNotEmpty) ...[
-                      CommonMinIconButtonTheme(
-                        child: IconButton.filledTonal(
-                          onPressed: () {
-                            _handleDelete();
-                          },
-                          icon: Icon(Icons.delete),
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                    ],
-                    CommonMinFilledButtonTheme(
-                      child: selectedRules.isNotEmpty
-                          ? FilledButton(
-                              onPressed: () {
-                                _handleSelectAll();
-                              },
-                              child: Text(appLocalizations.selectAll),
-                            )
-                          : FilledButton.tonal(
-                              onPressed: () {
-                                _handleAddOrUpdate();
-                              },
-                              child: Text(appLocalizations.add),
-                            ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          SliverToBoxAdapter(child: SizedBox(height: 8)),
-          Consumer(
-            builder: (_, ref, _) {
-              return SliverReorderableList(
-                itemCount: addedRules.length,
-                itemBuilder: (_, index) {
-                  final rule = addedRules[index];
-                  return ReorderableDelayedDragStartListener(
-                    key: ObjectKey(rule),
-                    index: index,
-                    child: RuleItem(
-                      isEditing: selectedRules.isNotEmpty,
-                      isSelected: selectedRules.contains(rule.id),
-                      rule: rule,
-                      onSelected: () {
-                        _handleSelected(rule.id);
-                      },
-                      onEdit: (rule) {
-                        _handleAddOrUpdate(rule);
-                      },
-                    ),
-                  );
-                },
-                onReorder: ref
-                    .read(profileAddedRulesProvider(widget.profileId).notifier)
-                    .order,
-              );
-            },
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: CommonCard(
-                radius: 18,
-                child: ListTile(
-                  minTileHeight: 0,
-                  minVerticalPadding: 0,
-                  titleTextStyle: context.textTheme.bodyMedium?.toJetBrainsMono,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
-                  title: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          appLocalizations.controlGlobalAddedRules,
-                          style: context.textTheme.bodyLarge,
-                        ),
-                      ),
-                      Icon(Icons.arrow_forward_ios, size: 18),
-                    ],
-                  ),
-                ),
-                onPressed: () {
-                  BaseNavigator.push(
-                    context,
-                    _EditGlobalAddedRules(profileId: widget.profileId),
-                  );
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ScriptContent extends ConsumerWidget {
-  final int profileId;
-
-  const _ScriptContent(this.profileId);
-
-  void _handleChange(WidgetRef ref, int scriptId) {
-    ref.read(profilesProvider.notifier).updateProfile(profileId, (state) {
-      return state.copyWith(
-        scriptId: state.scriptId == scriptId ? null : scriptId,
-      );
-    });
-  }
-
-  @override
-  Widget build(BuildContext context, ref) {
-    final scriptId = ref.watch(
-      profileProvider(profileId).select((state) => state?.scriptId),
-    );
-    final scripts = ref.watch(scriptsProvider).value ?? [];
-    return SliverMainAxisGroup(
-      slivers: [
-        SliverToBoxAdapter(child: SizedBox(height: 24)),
-        SliverToBoxAdapter(
-          child: Column(
-            children: [
-              InfoHeader(info: Info(label: appLocalizations.overrideScript)),
-            ],
-          ),
-        ),
-        SliverToBoxAdapter(child: SizedBox(height: 8)),
-        Consumer(
-          builder: (_, ref, _) {
-            return SliverPadding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverList.builder(
-                itemCount: scripts.length,
-                itemBuilder: (_, index) {
-                  final script = scripts[index];
-                  return Container(
-                    margin: EdgeInsets.symmetric(vertical: 4),
-                    child: CommonCard(
-                      type: CommonCardType.filled,
-                      radius: 18,
-                      child: ListTile(
-                        minLeadingWidth: 0,
-                        minTileHeight: 0,
-                        minVerticalPadding: 16,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                        ),
-                        title: Row(
-                          children: [
-                            SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: Radio(
-                                materialTapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                                visualDensity: VisualDensity.compact,
-                                toggleable: true,
-                                value: script.id,
-                                groupValue: scriptId,
-                                onChanged: (_) {
-                                  _handleChange(ref, script.id);
-                                },
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            Flexible(child: Text(script.label)),
-                          ],
-                        ),
-                        onTap: () {
-                          _handleChange(ref, script.id);
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ),
-            );
-          },
-        ),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: CommonCard(
-              radius: 18,
-              child: ListTile(
-                minTileHeight: 0,
-                minVerticalPadding: 0,
-                titleTextStyle: context.textTheme.bodyMedium?.toJetBrainsMono,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 16,
-                ),
-                title: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        appLocalizations.goToConfigureScript,
-                        style: context.textTheme.bodyLarge,
-                      ),
-                    ),
-                    Icon(Icons.arrow_forward_ios, size: 18),
-                  ],
-                ),
-              ),
-              onPressed: () {
-                BaseNavigator.push(context, const ScriptsView());
-              },
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _EditGlobalAddedRules extends ConsumerWidget {
-  final int profileId;
-
-  const _EditGlobalAddedRules({required this.profileId});
-
-  void _handleChange(WidgetRef ref, bool status, int ruleId) {
-    if (status) {
-      ref.read(profileDisabledRuleIdsProvider(profileId).notifier).put(ruleId);
-    } else {
-      ref.read(profileDisabledRuleIdsProvider(profileId).notifier).del(ruleId);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final disabledRuleIds =
-        ref.watch(profileDisabledRuleIdsProvider(profileId)).value ?? [];
-    final rules = ref.watch(globalRulesProvider).value ?? [];
-    return BaseScaffold(
-      title: appLocalizations.editGlobalRules,
-      body: rules.isEmpty
-          ? NullStatus(
-              label: appLocalizations.nullTip(appLocalizations.rule),
-              illustration: RuleEmptyIllustration(),
-            )
-          : ListView.builder(
-              padding: EdgeInsets.all(16),
-              itemBuilder: (context, index) {
-                final rule = rules[index];
-                return RuleStatusItem(
-                  status: !disabledRuleIds.contains(rule.id),
-                  rule: rule,
-                  onChange: (status) {
-                    _handleChange(ref, !status, rule.id);
-                  },
-                );
-              },
-              itemCount: rules.length,
-            ),
-    );
   }
 }

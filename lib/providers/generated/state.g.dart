@@ -2443,6 +2443,81 @@ final class ScriptFamily extends $Family
   String toString() => r'scriptProvider';
 }
 
+@ProviderFor(clashConfig)
+const clashConfigProvider = ClashConfigFamily._();
+
+final class ClashConfigProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<ClashConfig>,
+          ClashConfig,
+          FutureOr<ClashConfig>
+        >
+    with $FutureModifier<ClashConfig>, $FutureProvider<ClashConfig> {
+  const ClashConfigProvider._({
+    required ClashConfigFamily super.from,
+    required int super.argument,
+  }) : super(
+         retry: null,
+         name: r'clashConfigProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$clashConfigHash();
+
+  @override
+  String toString() {
+    return r'clashConfigProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<ClashConfig> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<ClashConfig> create(Ref ref) {
+    final argument = this.argument as int;
+    return clashConfig(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ClashConfigProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$clashConfigHash() => r'3987f6aee1131fe9b3978b914372b04ca2ae773c';
+
+final class ClashConfigFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<ClashConfig>, int> {
+  const ClashConfigFamily._()
+    : super(
+        retry: null,
+        name: r'clashConfigProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  ClashConfigProvider call(int profileId) =>
+      ClashConfigProvider._(argument: profileId, from: this);
+
+  @override
+  String toString() => r'clashConfigProvider';
+}
+
 @ProviderFor(setupState)
 const setupStateProvider = SetupStateFamily._();
 

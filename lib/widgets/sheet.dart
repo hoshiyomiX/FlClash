@@ -220,7 +220,7 @@ class _AdaptiveSheetScaffoldState extends State<AdaptiveSheetScaffold> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: EdgeInsets.only(top: 4),
+            padding: EdgeInsets.only(top: 6),
             child: Container(
               alignment: Alignment.center,
               height: handleSize.height,

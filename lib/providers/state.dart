@@ -1,5 +1,6 @@
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/core/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/state.dart';
@@ -675,6 +676,13 @@ Future<Script?> script(Ref ref, int? scriptId) async {
     })),
   );
   return script;
+}
+
+@riverpod
+Future<ClashConfig> clashConfig(Ref ref, int profileId) async {
+  final configMap = await coreController.getConfig(profileId);
+  final clashConfig = ClashConfig.fromJson(configMap);
+  return clashConfig;
 }
 
 @riverpod
