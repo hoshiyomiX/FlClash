@@ -20,7 +20,7 @@ class _CustomProxyGroupsView extends ConsumerWidget {
       props: SheetProps(
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
-        maxWidth: 400,
+        maxWidth: double.maxFinite,
       ),
       builder: (context) {
         return ProfileIdProvider(
@@ -130,26 +130,27 @@ class _EditProxyGroupNestedSheet extends StatelessWidget {
       },
     );
     final sheetProvider = SheetProvider.of(context);
-    return BackButtonListener(
-      child: CommonPopScope(
-        onPop: (_) async {
-          _handleClose(context, nestedNavigatorKey.currentState);
-          return false;
+    return CommonPopScope(
+      onPop: (_) async {
+        _handlePop(context, nestedNavigatorKey.currentState);
+        return false;
+      },
+      child: sheetProvider!.copyWith(
+        nestedNavigatorPopCallback: () {
+          Navigator.of(context).pop();
         },
-        child: sheetProvider!.copyWith(
-          nestedNavigatorPopCallback: () {
-            Navigator.of(context).pop();
-          },
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: GestureDetector(
-                  onTap: () async {
-                    _handlePop(context, nestedNavigatorKey.currentState);
-                  },
-                ),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () async {
+                  _handleClose(context, nestedNavigatorKey.currentState);
+                },
               ),
-              SheetViewport(
+            ),
+            SizedBox(
+              width: sheetProvider.type == SheetType.sideSheet ? 400 : null,
+              child: SheetViewport(
                 child: PagedSheet(
                   decoration: MaterialSheetDecoration(
                     size: SheetSize.stretch,
@@ -161,14 +162,10 @@ class _EditProxyGroupNestedSheet extends StatelessWidget {
                   navigator: nestedNavigator,
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-      onBackButtonPressed: () async {
-        _handlePop(context, nestedNavigatorKey.currentState);
-        return true;
-      },
     );
   }
 }
