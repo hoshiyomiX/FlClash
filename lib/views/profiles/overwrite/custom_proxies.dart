@@ -42,6 +42,7 @@ class _CustomProxyGroupsView extends ConsumerWidget {
   }) {
     final position = ItemPosition.get(index, total);
     return ItemPositionProvider(
+      key: ValueKey(proxyGroup.name),
       position: position,
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 16),
@@ -52,6 +53,10 @@ class _CustomProxyGroupsView extends ConsumerWidget {
           onPressed: () {
             _handleEditProxyGroup(context, proxyGroup);
           },
+          trailing: ReorderableDelayedDragStartListener(
+            index: index,
+            child: Icon(Icons.drag_handle),
+          ),
         ),
       ),
     );
@@ -64,18 +69,14 @@ class _CustomProxyGroupsView extends ConsumerWidget {
       title: '策略组',
       body: ReorderableListView.builder(
         buildDefaultDragHandles: false,
-        padding: EdgeInsets.only(bottom: 16),
+        padding: EdgeInsets.symmetric(vertical: 16),
         itemBuilder: (context, index) {
           final proxyGroup = proxyGroups[index];
-          return ReorderableDelayedDragStartListener(
-            key: ValueKey(proxyGroup),
+          return _buildItem(
+            context: context,
+            proxyGroup: proxyGroup,
+            total: proxyGroups.length,
             index: index,
-            child: _buildItem(
-              context: context,
-              proxyGroup: proxyGroup,
-              total: proxyGroups.length,
-              index: index,
-            ),
           );
         },
         itemCount: proxyGroups.length,
@@ -616,6 +617,10 @@ class _EditProxiesViewState extends ConsumerState<_EditProxiesView> {
               padding: EdgeInsets.zero,
             ),
           ),
+          trailing: ReorderableDelayedDragStartListener(
+            index: index,
+            child: Icon(Icons.drag_handle),
+          ),
         ),
       ),
     );
@@ -704,6 +709,27 @@ class _AddProxiesView extends ConsumerWidget {
 
   const _AddProxiesView({required this.addedProxyNames});
 
+  Widget _buildItem({
+    required String title,
+    required String subtitle,
+    required ItemPosition position,
+    Widget? trailing,
+  }) {
+    return Container(
+      key: Key(title),
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      child: ItemPositionProvider(
+        position: position,
+        child: DecorationListItem(
+          minVerticalPadding: 8,
+          title: Text(title),
+          subtitle: Text(subtitle),
+          trailing: trailing,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, ref) {
     final isBottomSheet =
@@ -743,35 +769,17 @@ class _AddProxiesView extends ConsumerWidget {
               SliverList(
                 delegate: SliverChildBuilderDelegate((_, index) {
                   final group = groups[index];
-                  return Container(
-                    margin: EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-                    color: Colors.transparent,
-                    child: Row(
-                      spacing: 8,
-                      children: [
-                        Flexible(
-                          child: CommonCard(
-                            radius: 18,
-                            onPressed: () {},
-                            child: ListTile(
-                              trailing: CommonMinIconButtonTheme(
-                                child: IconButton.filledTonal(
-                                  onPressed: () {},
-                                  icon: Icon(Icons.add, size: 18),
-                                  padding: EdgeInsets.zero,
-                                ),
-                              ),
-                              minTileHeight:
-                                  32 + globalState.measure.bodyMediumHeight,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              title: Text(group.name),
-                              subtitle: Text(group.type.value),
-                            ),
-                          ),
-                        ),
-                      ],
+                  final position = ItemPosition.get(index, groups.length);
+                  return _buildItem(
+                    title: group.name,
+                    subtitle: group.type.value,
+                    position: position,
+                    trailing: CommonMinIconButtonTheme(
+                      child: IconButton.filledTonal(
+                        onPressed: () {},
+                        icon: Icon(Icons.add, size: 18),
+                        padding: EdgeInsets.zero,
+                      ),
                     ),
                   );
                 }, childCount: groups.length),
@@ -788,35 +796,17 @@ class _AddProxiesView extends ConsumerWidget {
               SliverList(
                 delegate: SliverChildBuilderDelegate((_, index) {
                   final proxy = proxies[index];
-                  return Container(
-                    margin: EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-                    color: Colors.transparent,
-                    child: Row(
-                      spacing: 8,
-                      children: [
-                        Flexible(
-                          child: CommonCard(
-                            radius: 18,
-                            onPressed: () {},
-                            child: ListTile(
-                              trailing: CommonMinIconButtonTheme(
-                                child: IconButton.filledTonal(
-                                  onPressed: () {},
-                                  icon: Icon(Icons.add, size: 18),
-                                  padding: EdgeInsets.zero,
-                                ),
-                              ),
-                              minTileHeight:
-                                  32 + globalState.measure.bodyMediumHeight,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              title: Text(proxy.name),
-                              subtitle: Text(proxy.type),
-                            ),
-                          ),
-                        ),
-                      ],
+                  final position = ItemPosition.get(index, proxies.length);
+                  return _buildItem(
+                    title: proxy.name,
+                    subtitle: proxy.type,
+                    position: position,
+                    trailing: CommonMinIconButtonTheme(
+                      child: IconButton.filledTonal(
+                        onPressed: () {},
+                        icon: Icon(Icons.add, size: 18),
+                        padding: EdgeInsets.zero,
+                      ),
                     ),
                   );
                 }, childCount: proxies.length),
