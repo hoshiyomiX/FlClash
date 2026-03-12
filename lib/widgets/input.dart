@@ -321,25 +321,18 @@ class _ListInputPageState extends ConsumerState<ListInputPage> {
   Widget _buildItem({
     required String value,
     required int index,
-    required int totalLength,
+    required int length,
     required bool isSelected,
     required bool isEditing,
     isDecorator = false,
   }) {
-    ItemPosition position = ItemPosition.middle;
-    if (totalLength == 1) {
-      position = ItemPosition.startAndEnd;
-    } else if (index == totalLength - 1) {
-      position = ItemPosition.end;
-    } else if (index == 0) {
-      position = ItemPosition.start;
-    }
+    final position = ItemPosition.get(index, length);
     return ReorderableDelayedDragStartListener(
       key: ValueKey(value),
       index: index,
       child: ItemPositionProvider(
         position: position,
-        child: CommonSelectedInputListItem(
+        child: SelectedDecorationListItem(
           isDecorator: isDecorator,
           title: widget.titleBuilder(value),
           isSelected: isSelected,
@@ -424,7 +417,7 @@ class _ListInputPageState extends ConsumerState<ListInputPage> {
                   return _buildItem(
                     value: value,
                     index: index,
-                    totalLength: _items.length,
+                    length: _items.length,
                     isSelected: selectedItems.contains(value),
                     isEditing: selectedItems.isNotEmpty,
                   );
@@ -435,7 +428,7 @@ class _ListInputPageState extends ConsumerState<ListInputPage> {
                     _buildItem(
                       value: value,
                       index: index,
-                      totalLength: _items.length,
+                      length: _items.length,
                       isDecorator: true,
                       isSelected: selectedItems.contains(value),
                       isEditing: selectedItems.isNotEmpty,
@@ -581,25 +574,18 @@ class _MapInputPageState extends ConsumerState<MapInputPage> {
   Widget _buildItem({
     required MapEntry<String, String> value,
     required int index,
-    required int totalLength,
+    required int length,
     required bool isSelected,
     required bool isEditing,
     isDecorator = false,
   }) {
-    ItemPosition position = ItemPosition.middle;
-    if (totalLength == 1) {
-      position = ItemPosition.startAndEnd;
-    } else if (index == totalLength - 1) {
-      position = ItemPosition.end;
-    } else if (index == 0) {
-      position = ItemPosition.start;
-    }
+    final position = ItemPosition.get(index, length);
     return ReorderableDelayedDragStartListener(
       key: ValueKey(value),
       index: index,
       child: ItemPositionProvider(
         position: position,
-        child: CommonSelectedInputListItem(
+        child: SelectedDecorationListItem(
           isDecorator: isDecorator,
           title: widget.titleBuilder(value),
           leading: widget.leadingBuilder != null
@@ -687,7 +673,7 @@ class _MapInputPageState extends ConsumerState<MapInputPage> {
                   return _buildItem(
                     value: value,
                     index: index,
-                    totalLength: _items.length,
+                    length: _items.length,
                     isSelected: selectedItems.contains(value.key),
                     isEditing: selectedItems.isNotEmpty,
                   );
@@ -698,7 +684,7 @@ class _MapInputPageState extends ConsumerState<MapInputPage> {
                     _buildItem(
                       value: value,
                       index: index,
-                      totalLength: _items.length,
+                      length: _items.length,
                       isDecorator: true,
                       isSelected: selectedItems.contains(value.key),
                       isEditing: selectedItems.isNotEmpty,

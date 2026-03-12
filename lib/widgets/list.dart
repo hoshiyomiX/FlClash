@@ -548,15 +548,9 @@ Widget generateSectionV3({
   List<Widget>? actions,
 }) {
   final genItems = items.mapIndexed<Widget>((index, item) {
-    if (items.length == 1) {
-      return ItemPositionProvider(
-        position: ItemPosition.startAndEnd,
-        child: item,
-      );
-    } else if (index == 0) {
-      return ItemPositionProvider(position: ItemPosition.start, child: item);
-    } else if (index == items.length - 1) {
-      return ItemPositionProvider(position: ItemPosition.end, child: item);
+    final position = ItemPosition.get(index, items.length);
+    if (position != ItemPosition.middle) {
+      return ItemPositionProvider(position: position, child: item);
     }
     return item;
   });
@@ -649,24 +643,26 @@ class CommonSelectedListItem extends StatelessWidget {
   }
 }
 
-class CommonInputListItem extends StatelessWidget {
+class DecorationListItem extends StatelessWidget {
   final bool isDecorator;
-  final Widget? title;
+  final Widget title;
   final Widget? subtitle;
   final Widget? leading;
   final Widget? trailing;
   final bool? isSelected;
   final VoidCallback? onPressed;
+  final double minVerticalPadding;
 
-  const CommonInputListItem({
+  const DecorationListItem({
     super.key,
     this.isDecorator = false,
-    this.title,
+    required this.title,
     this.leading,
     this.trailing,
     this.subtitle,
     this.isSelected,
     this.onPressed,
+    this.minVerticalPadding = 6,
   });
 
   @override
@@ -681,7 +677,7 @@ class CommonInputListItem extends StatelessWidget {
       ItemPosition.startAndEnd,
     ].contains(position);
     return Container(
-      clipBehavior: Clip.hardEdge,
+      clipBehavior: Clip.antiAlias,
       decoration: ShapeDecoration(
         shape: isDecorator == true
             ? LinearBorder.none
@@ -695,10 +691,12 @@ class CommonInputListItem extends StatelessWidget {
       child: CommonCard(
         radius: 0,
         isSelected: isSelected,
+        padding: EdgeInsets.zero,
         type: CommonCardType.filled,
         onPressed: onPressed,
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Flexible(
               child: ListTile(
@@ -706,7 +704,7 @@ class CommonInputListItem extends StatelessWidget {
                 contentPadding: const EdgeInsets.only(right: 16, left: 16),
                 title: title,
                 subtitle: subtitle,
-                minVerticalPadding: 0,
+                minVerticalPadding: minVerticalPadding,
                 minTileHeight: 54,
                 trailing: trailing,
               ),
@@ -720,7 +718,7 @@ class CommonInputListItem extends StatelessWidget {
   }
 }
 
-class CommonSelectedInputListItem extends StatelessWidget {
+class SelectedDecorationListItem extends StatelessWidget {
   final bool isSelected;
   final bool isEditing;
   final Widget title;
@@ -730,7 +728,7 @@ class CommonSelectedInputListItem extends StatelessWidget {
   final bool isDecorator;
   final Widget? leading;
 
-  const CommonSelectedInputListItem({
+  const SelectedDecorationListItem({
     super.key,
     required this.isSelected,
     required this.onSelected,
@@ -744,7 +742,7 @@ class CommonSelectedInputListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CommonInputListItem(
+    return DecorationListItem(
       title: title,
       isDecorator: isDecorator,
       isSelected: isSelected,

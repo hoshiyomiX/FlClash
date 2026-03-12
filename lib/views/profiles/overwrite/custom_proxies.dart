@@ -34,6 +34,29 @@ class _CustomProxyGroupsView extends ConsumerWidget {
     );
   }
 
+  Widget _buildItem({
+    required BuildContext context,
+    required ProxyGroup proxyGroup,
+    required int index,
+    required int total,
+  }) {
+    final position = ItemPosition.get(index, total);
+    return ItemPositionProvider(
+      position: position,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        child: DecorationListItem(
+          minVerticalPadding: 8,
+          title: Text(proxyGroup.name),
+          subtitle: Text(proxyGroup.type.name),
+          onPressed: () {
+            _handleEditProxyGroup(context, proxyGroup);
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final proxyGroups = ref.watch(proxyGroupsProvider(profileId)).value ?? [];
@@ -42,38 +65,19 @@ class _CustomProxyGroupsView extends ConsumerWidget {
       body: ReorderableListView.builder(
         buildDefaultDragHandles: false,
         padding: EdgeInsets.only(bottom: 16),
-        itemBuilder: (_, index) {
+        itemBuilder: (context, index) {
           final proxyGroup = proxyGroups[index];
           return ReorderableDelayedDragStartListener(
             key: ValueKey(proxyGroup),
             index: index,
-            child: Container(
-              margin: EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-              child: CommonCard(
-                radius: 16,
-                padding: EdgeInsets.all(16),
-                onPressed: () {
-                  _handleEditProxyGroup(context, proxyGroup);
-                },
-                child: ListTile(
-                  minTileHeight: 0,
-                  minVerticalPadding: 0,
-                  titleTextStyle: context.textTheme.bodyMedium?.toJetBrainsMono,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 4,
-                  ),
-                  title: Text(proxyGroup.name),
-                  subtitle: Text(proxyGroup.type.name),
-                ),
-              ),
+            child: _buildItem(
+              context: context,
+              proxyGroup: proxyGroup,
+              total: proxyGroups.length,
+              index: index,
             ),
           );
         },
-        itemExtent:
-            28 +
-            globalState.measure.bodyMediumHeight +
-            globalState.measure.bodyLargeHeight,
         itemCount: proxyGroups.length,
         onReorder: (oldIndex, newIndex) {
           _handleReorder(ref, profileId, oldIndex, newIndex);
@@ -248,7 +252,7 @@ class _EditProxyGroupViewState extends ConsumerState<_EditProxyGroupView> {
     Widget? trailing,
     final VoidCallback? onPressed,
   }) {
-    return CommonInputListItem(
+    return DecorationListItem(
       onPressed: onPressed,
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -589,6 +593,34 @@ class _EditProxiesViewState extends ConsumerState<_EditProxiesView> {
     );
   }
 
+  Widget _buildItem({
+    required String proxyName,
+    required String? proxyType,
+    required int index,
+    required int length,
+  }) {
+    final position = ItemPosition.get(index, length);
+    return Container(
+      key: Key(proxyName),
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      child: ItemPositionProvider(
+        position: position,
+        child: DecorationListItem(
+          minVerticalPadding: 8,
+          title: Text(proxyName),
+          subtitle: Text(proxyType ?? proxyName.toLowerCase()),
+          leading: CommonMinIconButtonTheme(
+            child: IconButton.filledTonal(
+              onPressed: () {},
+              icon: Icon(Icons.remove, size: 18),
+              padding: EdgeInsets.zero,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileId = ProfileIdProvider.of(context)!.profileId;
@@ -645,44 +677,15 @@ class _EditProxiesViewState extends ConsumerState<_EditProxiesView> {
             SliverReorderableList(
               itemBuilder: (_, index) {
                 final proxyName = proxyNames[index];
-                return Container(
-                  key: Key(proxyName),
-                  margin: EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-                  color: Colors.transparent,
-                  child: Row(
-                    spacing: 8,
-                    children: [
-                      Flexible(
-                        child: CommonCard(
-                          radius: 18,
-                          onPressed: () {},
-                          child: ListTile(
-                            leading: CommonMinIconButtonTheme(
-                              child: IconButton.filledTonal(
-                                onPressed: () {},
-                                icon: Icon(Icons.remove, size: 18),
-                                padding: EdgeInsets.zero,
-                              ),
-                            ),
-                            minTileHeight:
-                                32 + globalState.measure.bodyMediumHeight,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                            ),
-                            title: Text(proxyName),
-                            subtitle: Text(
-                              proxyTypeMap[proxyName] ??
-                                  proxyName.toLowerCase(),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                return _buildItem(
+                  proxyName: proxyName,
+                  proxyType: proxyTypeMap[proxyName],
+                  index: index,
+                  length: proxyNames.length,
                 );
               },
               itemExtent:
-                  24 +
+                  16 +
                   globalState.measure.bodyMediumHeight +
                   globalState.measure.bodyLargeHeight,
               itemCount: proxyNames.length,
