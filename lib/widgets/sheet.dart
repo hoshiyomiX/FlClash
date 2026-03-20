@@ -288,8 +288,8 @@ class _AdaptiveSheetScaffoldState extends State<AdaptiveSheetScaffold> {
                               ),
                               child: BackdropFilter(
                                 filter: ImageFilter.blur(
-                                  sigmaX: 15.0,
-                                  sigmaY: 15.0,
+                                  sigmaX: 12.0,
+                                  sigmaY: 12.0,
                                 ),
                                 child: ColoredBox(
                                   color: isScrolled

@@ -118,7 +118,7 @@ class _CustomRulesViewState extends ConsumerState<_CustomRulesView>
             ),
           );
         },
-        itemExtent: globalState.measure.bodyMediumHeight * 2 + 12,
+        itemExtent: ruleItemHeight,
         itemCount: rules.length,
         onReorder: _handleReorder,
       ),

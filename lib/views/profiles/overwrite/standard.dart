@@ -131,57 +131,41 @@ class _StandardContentState extends ConsumerState<_StandardContent> {
                 itemCount: addedRules.length,
                 itemBuilder: (_, index) {
                   final rule = addedRules[index];
+                  final position = ItemPosition.get(index, addedRules.length);
                   return ReorderableDelayedDragStartListener(
                     key: ObjectKey(rule),
                     index: index,
-                    child: RuleItem(
-                      isEditing: selectedRules.isNotEmpty,
-                      isSelected: selectedRules.contains(rule.id),
-                      rule: rule,
-                      onSelected: () {
-                        _handleSelected(rule.id);
-                      },
-                      onEdit: (rule) {
-                        _handleAddOrUpdate(rule);
-                      },
+                    child: ItemPositionProvider(
+                      position: position,
+                      child: Container(
+                        margin: EdgeInsets.symmetric(horizontal: 16),
+                        child: RuleItem(
+                          isEditing: selectedRules.isNotEmpty,
+                          isSelected: selectedRules.contains(rule.id),
+                          rule: rule,
+                          onSelected: () {
+                            _handleSelected(rule.id);
+                          },
+                          onEdit: (rule) {
+                            _handleAddOrUpdate(rule);
+                          },
+                        ),
+                      ),
                     ),
                   );
                 },
+                itemExtent: ruleItemHeight,
                 onReorder: ref
                     .read(profileAddedRulesProvider(_profileId).notifier)
                     .order,
               );
             },
           ),
+          SliverToBoxAdapter(child: SizedBox(height: 16)),
           SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: CommonCard(
-                radius: 18,
-                onPressed: _handleToEditGlobalAddedRules,
-                child: ListTile(
-                  minTileHeight: 0,
-                  minVerticalPadding: 0,
-                  titleTextStyle: context.textTheme.bodyMedium?.toJetBrainsMono,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
-                  title: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          appLocalizations.controlGlobalAddedRules,
-                          style: context.textTheme.bodyLarge,
-                        ),
-                      ),
-                      Icon(Icons.arrow_forward_ios, size: 18),
-                    ],
-                  ),
-                ),
-              ),
+            child: _MoreActionButton(
+              label: appLocalizations.controlGlobalAddedRules,
+              onPressed: _handleToEditGlobalAddedRules,
             ),
           ),
         ],
@@ -217,14 +201,19 @@ class _EditGlobalAddedRules extends ConsumerWidget {
             )
           : ListView.builder(
               padding: EdgeInsets.all(16),
+              itemExtent: ruleItemHeight,
               itemBuilder: (context, index) {
                 final rule = rules[index];
-                return RuleStatusItem(
-                  status: !disabledRuleIds.contains(rule.id),
-                  rule: rule,
-                  onChange: (status) {
-                    _handleChange(ref, profileId, !status, rule.id);
-                  },
+                final position = ItemPosition.get(index, rules.length);
+                return ItemPositionProvider(
+                  position: position,
+                  child: RuleStatusItem(
+                    status: !disabledRuleIds.contains(rule.id),
+                    rule: rule,
+                    onChange: (status) {
+                      _handleChange(ref, profileId, !status, rule.id);
+                    },
+                  ),
                 );
               },
               itemCount: rules.length,

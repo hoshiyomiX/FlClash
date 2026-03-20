@@ -330,6 +330,21 @@ class _EditProxyGroupViewState extends ConsumerState<_EditProxyGroupView> {
     );
   }
 
+  Widget _buildIconItem(String? icon) {
+    return _buildItem(
+      title: Text('图标'),
+      onPressed: () {
+        // _showTypeOptions(type);
+      },
+      trailing: Text(
+        icon ?? '可选',
+        style: context.textTheme.bodyLarge?.copyWith(
+          color: icon == null ? context.colorScheme.onSurfaceVariant : null,
+        ),
+      ),
+    );
+  }
+
   void _handleChangeName(String value) {
     ref
         .read(proxyGroupProvider.notifier)
@@ -417,7 +432,7 @@ class _EditProxyGroupViewState extends ConsumerState<_EditProxyGroupView> {
               items: [
                 _buildNameItem(proxyGroup.name),
                 _buildTypeItem(proxyGroup.type),
-                _buildItem(title: Text('图标')),
+                _buildIconItem(proxyGroup.icon),
                 _buildHiddenItem(proxyGroup.hidden ?? false),
                 _buildDisableUDPItem(proxyGroup.disableUDP ?? false),
               ],
