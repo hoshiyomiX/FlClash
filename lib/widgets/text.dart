@@ -14,8 +14,11 @@ class TooltipText extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final maxWidth = constraints.maxWidth;
-        final tp = globalState.measure.computeText(text, maxWidth: maxWidth);
-        if (tp.didExceedMaxLines) {
+        final isOverflow = globalState.measure.computeTextIsOverflow(
+          text,
+          maxWidth: maxWidth,
+        );
+        if (isOverflow) {
           return Tooltip(
             triggerMode: TooltipTriggerMode.longPress,
             preferBelow: false,
