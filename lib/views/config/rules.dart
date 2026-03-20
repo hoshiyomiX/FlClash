@@ -1,4 +1,5 @@
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/features/features.dart';
 import 'package:fl_clash/models/clash_config.dart';
 import 'package:fl_clash/providers/database.dart';
@@ -106,25 +107,30 @@ class _AddedRulesViewState extends ConsumerState<AddedRulesView> {
                 illustration: RuleEmptyIllustration(),
               )
             : ReorderableList(
-                padding: EdgeInsets.symmetric(vertical: 16),
+                padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                 itemBuilder: (context, index) {
                   final rule = rules[index];
+                  final position = ItemPosition.get(index, rules.length);
                   return ReorderableDelayedDragStartListener(
                     key: ObjectKey(rule),
                     index: index,
-                    child: RuleItem(
-                      isEditing: selectedRules.isNotEmpty,
-                      rule: rule,
-                      isSelected: selectedRules.contains(rule.id),
-                      onSelected: () {
-                        _handleSelected(rule.id);
-                      },
-                      onEdit: (Rule rule) {
-                        _handleAddOrUpdate(rule);
-                      },
+                    child: ItemPositionProvider(
+                      position: position,
+                      child: RuleItem(
+                        isEditing: selectedRules.isNotEmpty,
+                        rule: rule,
+                        isSelected: selectedRules.contains(rule.id),
+                        onSelected: () {
+                          _handleSelected(rule.id);
+                        },
+                        onEdit: (Rule rule) {
+                          _handleAddOrUpdate(rule);
+                        },
+                      ),
                     ),
                   );
                 },
+                itemExtent: ruleItemHeight,
                 itemCount: rules.length,
                 onReorder: ref.read(globalRulesProvider.notifier).order,
               ),
