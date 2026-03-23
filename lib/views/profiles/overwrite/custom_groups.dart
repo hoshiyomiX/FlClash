@@ -283,6 +283,146 @@ class _EditProxyGroupViewState extends ConsumerState<_EditProxyGroupView> {
     );
   }
 
+  Widget _buildFilterItem(String? filter) {
+    return _buildItem(
+      title: Text('节点过滤器'),
+      trailing: TextFormField(
+        textAlign: TextAlign.end,
+        initialValue: filter,
+        onChanged: (value) {
+          ref
+              .read(proxyGroupProvider.notifier)
+              .update((state) => state.copyWith(filter: value));
+        },
+        decoration: InputDecoration.collapsed(
+          border: NoInputBorder(),
+          hintText: '可选',
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMaxFailedTimesItem(int? maxFailedTimes) {
+    return _buildItem(
+      title: Text('最大失败次数'),
+      trailing: TextFormField(
+        keyboardType: TextInputType.number,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        textAlign: TextAlign.end,
+        initialValue: maxFailedTimes?.toString(),
+        onChanged: (value) {
+          ref
+              .read(proxyGroupProvider.notifier)
+              .update(
+                (state) => state.copyWith(maxFailedTimes: int.tryParse(value)),
+              );
+        },
+        decoration: InputDecoration.collapsed(
+          border: NoInputBorder(),
+          hintText: '可选',
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUrlItem(String? url) {
+    return _buildItem(
+      title: Text('测试链接'),
+      trailing: TextFormField(
+        keyboardType: TextInputType.url,
+        textAlign: TextAlign.end,
+        initialValue: url,
+        onChanged: (value) {
+          ref
+              .read(proxyGroupProvider.notifier)
+              .update((state) => state.copyWith(url: value));
+        },
+        decoration: InputDecoration.collapsed(
+          border: NoInputBorder(),
+          hintText: '可选',
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIntervalItem(int? interval) {
+    return _buildItem(
+      title: Text('测试间隔'),
+      trailing: TextFormField(
+        keyboardType: TextInputType.number,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        textAlign: TextAlign.end,
+        initialValue: interval?.toString(),
+        onChanged: (value) {
+          ref
+              .read(proxyGroupProvider.notifier)
+              .update((state) => state.copyWith(interval: int.tryParse(value)));
+        },
+        decoration: InputDecoration.collapsed(
+          border: NoInputBorder(),
+          hintText: '可选',
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExcludeFilterItem(String? excludeFilter) {
+    return _buildItem(
+      title: Text('排除节点过滤器'),
+      trailing: TextFormField(
+        textAlign: TextAlign.end,
+        initialValue: excludeFilter,
+        onChanged: (value) {
+          ref
+              .read(proxyGroupProvider.notifier)
+              .update((state) => state.copyWith(excludeFilter: value));
+        },
+        decoration: InputDecoration.collapsed(
+          border: NoInputBorder(),
+          hintText: '可选',
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExcludeTypeItem(String? type) {
+    return _buildItem(
+      title: Text('排除类型'),
+      trailing: TextFormField(
+        textAlign: TextAlign.end,
+        initialValue: type,
+        onChanged: (value) {
+          ref
+              .read(proxyGroupProvider.notifier)
+              .update((state) => state.copyWith(excludeType: value));
+        },
+        decoration: InputDecoration.collapsed(
+          border: NoInputBorder(),
+          hintText: '可选',
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExpectedStatusItem(String? expectedStatus) {
+    return _buildItem(
+      title: Text('预期状态'),
+      trailing: TextFormField(
+        textAlign: TextAlign.end,
+        initialValue: expectedStatus,
+        onChanged: (value) {
+          ref
+              .read(proxyGroupProvider.notifier)
+              .update((state) => state.copyWith(expectedStatus: value));
+        },
+        decoration: InputDecoration.collapsed(
+          border: NoInputBorder(),
+          hintText: '可选',
+        ),
+      ),
+    );
+  }
+
   Widget _buildProxiesItem(bool includeAllProxies, List<String> proxies) {
     return _buildItem(
       title: Text('选择代理'),
@@ -345,19 +485,15 @@ class _EditProxyGroupViewState extends ConsumerState<_EditProxyGroupView> {
     );
   }
 
-  void _handleChangeName(String value) {
-    ref
-        .read(proxyGroupProvider.notifier)
-        .update((state) => state.copyWith(name: value));
-  }
-
   Widget _buildNameItem(String name) {
     return _buildItem(
       title: Text('名称'),
       trailing: TextFormField(
         initialValue: name,
         onChanged: (value) {
-          _handleChangeName(value);
+          ref
+              .read(proxyGroupProvider.notifier)
+              .update((state) => state.copyWith(name: value));
         },
         textAlign: TextAlign.end,
         decoration: InputDecoration.collapsed(
@@ -368,41 +504,60 @@ class _EditProxyGroupViewState extends ConsumerState<_EditProxyGroupView> {
     );
   }
 
-  void _handleChangeHidden() {
-    ref
-        .read(proxyGroupProvider.notifier)
-        .update((state) => state.copyWith(hidden: !(state.hidden ?? false)));
-  }
+  Widget _buildHiddenItem(bool? hidden) {
+    void handleChangeHidden() {
+      ref
+          .read(proxyGroupProvider.notifier)
+          .update((state) => state.copyWith(hidden: !(hidden ?? false)));
+    }
 
-  Widget _buildHiddenItem(bool hidden) {
     return _buildItem(
       title: Text('从列表中隐藏'),
-      onPressed: _handleChangeHidden,
+      onPressed: handleChangeHidden,
       trailing: Switch(
-        value: hidden,
+        value: hidden ?? false,
         onChanged: (_) {
-          _handleChangeHidden();
+          handleChangeHidden();
         },
       ),
     );
   }
 
-  void _handleChangeDisableUDP() {
-    ref
-        .read(proxyGroupProvider.notifier)
-        .update(
-          (state) => state.copyWith(disableUDP: !(state.disableUDP ?? false)),
-        );
+  Widget _buildLazyItem(bool? lazy) {
+    void handleChangeLazy() {
+      ref
+          .read(proxyGroupProvider.notifier)
+          .update((state) => state.copyWith(lazy: !(lazy ?? false)));
+    }
+
+    return _buildItem(
+      title: Text('使用时测试'),
+      onPressed: handleChangeLazy,
+      trailing: Switch(
+        value: lazy ?? false,
+        onChanged: (_) {
+          handleChangeLazy();
+        },
+      ),
+    );
   }
 
-  Widget _buildDisableUDPItem(bool disableUDP) {
+  Widget _buildDisableUDPItem(bool? disableUDP) {
+    void handleChangeDisableUDP() {
+      ref
+          .read(proxyGroupProvider.notifier)
+          .update(
+            (state) => state.copyWith(disableUDP: !(disableUDP ?? false)),
+          );
+    }
+
     return _buildItem(
       title: Text('禁用UDP'),
-      onPressed: _handleChangeDisableUDP,
+      onPressed: handleChangeDisableUDP,
       trailing: Switch(
-        value: disableUDP,
+        value: disableUDP ?? false,
         onChanged: (_) {
-          _handleChangeDisableUDP();
+          handleChangeDisableUDP();
         },
       ),
     );
@@ -433,8 +588,8 @@ class _EditProxyGroupViewState extends ConsumerState<_EditProxyGroupView> {
                 _buildNameItem(proxyGroup.name),
                 _buildTypeItem(proxyGroup.type),
                 _buildIconItem(proxyGroup.icon),
-                _buildHiddenItem(proxyGroup.hidden ?? false),
-                _buildDisableUDPItem(proxyGroup.disableUDP ?? false),
+                _buildHiddenItem(proxyGroup.hidden),
+                _buildDisableUDPItem(proxyGroup.disableUDP),
               ],
             ),
             generateSectionV3(
@@ -448,85 +603,19 @@ class _EditProxyGroupViewState extends ConsumerState<_EditProxyGroupView> {
                   proxyGroup.includeAllProviders ?? false,
                   proxyGroup.use ?? [],
                 ),
-                _buildItem(
-                  title: Text('节点过滤器'),
-                  trailing: TextFormField(
-                    textAlign: TextAlign.end,
-                    decoration: InputDecoration.collapsed(
-                      border: NoInputBorder(),
-                      hintText: '可选',
-                    ),
-                  ),
-                ),
-                _buildItem(
-                  title: Text('排除过滤器'),
-                  trailing: TextFormField(
-                    textAlign: TextAlign.end,
-                    decoration: InputDecoration.collapsed(
-                      border: NoInputBorder(),
-                      hintText: '可选',
-                    ),
-                  ),
-                ),
-                _buildItem(
-                  title: Text('排除类型'),
-                  trailing: TextFormField(
-                    textAlign: TextAlign.end,
-                    decoration: InputDecoration.collapsed(
-                      border: NoInputBorder(),
-                      hintText: '可选',
-                    ),
-                  ),
-                ),
-                _buildItem(
-                  title: Text('预期状态'),
-                  trailing: TextFormField(
-                    textAlign: TextAlign.end,
-                    decoration: InputDecoration.collapsed(
-                      border: NoInputBorder(),
-                      hintText: '可选',
-                    ),
-                  ),
-                ),
+                _buildFilterItem(proxyGroup.filter),
+                _buildExcludeFilterItem(proxyGroup.excludeFilter),
+                _buildExcludeTypeItem(proxyGroup.excludeType),
+                _buildExpectedStatusItem(proxyGroup.expectedStatus),
               ],
             ),
             generateSectionV3(
               title: '其他',
               items: [
-                _buildItem(
-                  title: Text('测速链接'),
-                  trailing: TextFormField(
-                    textAlign: TextAlign.end,
-                    decoration: InputDecoration.collapsed(
-                      border: NoInputBorder(),
-                      hintText: '可选',
-                    ),
-                  ),
-                ),
-                _buildItem(
-                  title: Text('最大失败次数'),
-                  trailing: TextFormField(
-                    textAlign: TextAlign.end,
-                    decoration: InputDecoration.collapsed(
-                      border: NoInputBorder(),
-                      hintText: '可选',
-                    ),
-                  ),
-                ),
-                _buildItem(
-                  title: Text('使用时测速'),
-                  trailing: Switch(value: false, onChanged: (_) {}),
-                ),
-                _buildItem(
-                  title: Text('测速间隔'),
-                  trailing: TextFormField(
-                    textAlign: TextAlign.end,
-                    decoration: InputDecoration.collapsed(
-                      border: NoInputBorder(),
-                      hintText: '可选',
-                    ),
-                  ),
-                ),
+                _buildUrlItem(proxyGroup.url),
+                _buildMaxFailedTimesItem(proxyGroup.maxFailedTimes),
+                _buildLazyItem(proxyGroup.lazy),
+                _buildIntervalItem(proxyGroup.interval),
               ],
             ),
             generateSectionV3(
