@@ -560,8 +560,6 @@ class _EditProxiesView extends ConsumerStatefulWidget {
 
 class _EditProxiesViewState extends ConsumerState<_EditProxiesView>
     with UniqueKeyStateMixin {
-  bool _isComputing = false;
-
   @override
   void initState() {
     super.initState();
@@ -579,9 +577,6 @@ class _EditProxiesViewState extends ConsumerState<_EditProxiesView>
   }
 
   void _handleRemove(String proxyName) {
-    if (_isComputing) {
-      return;
-    }
     ref.read(itemsProvider(key).notifier).update((state) {
       final newSet = Set.from(state);
       newSet.add(proxyName);
@@ -593,7 +588,6 @@ class _EditProxiesViewState extends ConsumerState<_EditProxiesView>
     debouncer.call(
       'EditProxiesViewState_handleRealRemove',
       () {
-        _isComputing = true;
         if (!ref.context.mounted) {
           return;
         }
@@ -604,7 +598,6 @@ class _EditProxiesViewState extends ConsumerState<_EditProxiesView>
           return state.copyWith(proxies: newProxies);
         });
         ref.read(itemsProvider(key).notifier).update((state) => <dynamic>{});
-        _isComputing = false;
       },
       duration: Duration(milliseconds: 1000),
     );
@@ -787,21 +780,50 @@ class _AddProxiesView extends ConsumerStatefulWidget {
 
 class _AddProxiesViewState extends ConsumerState<_AddProxiesView>
     with UniqueKeyStateMixin {
-  void _handleAdd(String name) {
-    final dismissItem = ref.read(itemProvider(key));
-    if (dismissItem != null) {
-      return;
-    }
-    ref.read(itemProvider(key).notifier).value = name;
+  @override
+  void initState() {
+    super.initState();
+    ref.listenManual(itemsProvider('${key}_groups'), (prev, next) {
+      if (!SetEquality().equals(prev, next)) {
+        _handleRealAdd('groups');
+      }
+    });
+    ref.listenManual(itemsProvider('${key}_proxies'), (prev, next) {
+      if (!SetEquality().equals(prev, next)) {
+        _handleRealAdd('proxies');
+      }
+    });
   }
 
-  void _handleRealAdd(String name) {
-    ref
-        .read(proxyGroupProvider.notifier)
-        .update(
-          (state) => state.copyWith(proxies: [...state.proxies ?? [], name]),
-        );
-    ref.read(itemProvider(key).notifier).value = null;
+  void _handleAdd(String name, String scene) {
+    final realKey = '${key}_$scene';
+    ref.read(itemsProvider(realKey).notifier).update((state) {
+      final newSet = Set.from(state);
+      newSet.add(name);
+      return newSet;
+    });
+  }
+
+  void _handleRealAdd(String scene) {
+    debouncer.call(
+      'AddProxiesViewState_handleRealAdd_$scene',
+      () {
+        if (!ref.context.mounted) {
+          return;
+        }
+        final realKey = '${key}_$scene';
+        final dismissItems = ref.read(itemsProvider(realKey));
+        ref.read(proxyGroupProvider.notifier).update((state) {
+          return state.copyWith(
+            proxies: [...state.proxies ?? [], ...dismissItems],
+          );
+        });
+        ref
+            .read(itemsProvider(realKey).notifier)
+            .update((state) => <dynamic>{});
+      },
+      duration: Duration(milliseconds: 1000),
+    );
   }
 
   Widget _buildItem({
@@ -810,12 +832,10 @@ class _AddProxiesViewState extends ConsumerState<_AddProxiesView>
     required ItemPosition position,
     required bool dismiss,
     required VoidCallback onAdd,
-    required VoidCallback onDismissed,
   }) {
     return ExternalDismissible(
       key: ValueKey(title),
       dismiss: dismiss,
-      onDismissed: onDismissed,
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 16),
         child: ItemPositionProvider(
@@ -839,10 +859,11 @@ class _AddProxiesViewState extends ConsumerState<_AddProxiesView>
 
   @override
   Widget build(BuildContext context) {
-    final dismissItem = ref.watch(itemProvider(key));
     final isBottomSheet =
         SheetProvider.of(context)?.type == SheetType.bottomSheet;
     final profileId = ProfileIdProvider.of(context)!.profileId;
+    final dismissGroups = ref.watch(itemsProvider('${key}_groups'));
+    final dismissProxies = ref.watch(itemsProvider('${key}_proxies'));
     final allProxiesAndProxyGroups = ref.watch(
       clashConfigProvider(profileId).select(
         (state) =>
@@ -851,17 +872,19 @@ class _AddProxiesViewState extends ConsumerState<_AddProxiesView>
     );
     final allProxies = allProxiesAndProxyGroups.a;
     final allProxyGroups = allProxiesAndProxyGroups.b;
-    final proxyNames = ref.watch(
+    final excludeProxyNames = ref.watch(
       proxyGroupProvider.select((state) {
         return [...?state.proxies, state.name];
       }),
     );
-    final proxies = allProxies
-        .where((item) => !proxyNames.contains(item.name))
-        .toList();
     final proxyGroups = allProxyGroups
-        .where((item) => !proxyNames.contains(item.name))
+        .where((item) => !excludeProxyNames.contains(item.name))
         .toList();
+    final proxies = allProxies
+        .where((item) => !excludeProxyNames.contains(item.name))
+        .toList();
+    final groupNames = proxyGroups.map((item) => item.name).toList();
+    final proxyNames = proxies.map((item) => item.name).toList();
     return SizedBox(
       height: isBottomSheet
           ? appController.viewSize.height * 0.80
@@ -886,20 +909,18 @@ class _AddProxiesViewState extends ConsumerState<_AddProxiesView>
                     SliverList(
                       delegate: SliverChildBuilderDelegate((_, index) {
                         final proxyGroup = proxyGroups[index];
-                        final position = ItemPosition.get(
+                        final position = ItemPosition.calculateVisualPosition(
                           index,
-                          proxyGroups.length,
+                          groupNames,
+                          dismissGroups,
                         );
                         return _buildItem(
                           title: proxyGroup.name,
                           subtitle: proxyGroup.type.value,
                           position: position,
-                          dismiss: dismissItem == proxyGroup.name,
+                          dismiss: dismissGroups.contains(proxyGroup.name),
                           onAdd: () {
-                            _handleAdd(proxyGroup.name);
-                          },
-                          onDismissed: () {
-                            _handleRealAdd(proxyGroup.name);
+                            _handleAdd(proxyGroup.name, 'groups');
                           },
                         );
                       }, childCount: proxyGroups.length),
@@ -916,20 +937,18 @@ class _AddProxiesViewState extends ConsumerState<_AddProxiesView>
                     SliverList(
                       delegate: SliverChildBuilderDelegate((_, index) {
                         final proxy = proxies[index];
-                        final position = ItemPosition.get(
+                        final position = ItemPosition.calculateVisualPosition(
                           index,
-                          proxies.length,
+                          proxyNames,
+                          dismissProxies,
                         );
                         return _buildItem(
                           title: proxy.name,
                           subtitle: proxy.type,
                           position: position,
-                          dismiss: dismissItem == proxy.name,
+                          dismiss: dismissProxies.contains(proxy.name),
                           onAdd: () {
-                            _handleAdd(proxy.name);
-                          },
-                          onDismissed: () {
-                            _handleRealAdd(proxy.name);
+                            _handleAdd(proxy.name, 'proxies');
                           },
                         );
                       }, childCount: proxies.length),
