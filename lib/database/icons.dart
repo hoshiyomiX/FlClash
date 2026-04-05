@@ -1,10 +1,7 @@
 part of 'database.dart';
 
 @DataClassName('IconRecord')
-@TableIndex(
-  name: 'last_accessed_url',
-  columns: {#lastAccessed, #url},
-)
+@TableIndex(name: 'last_accessed_url', columns: {#lastAccessed, #url})
 class IconRecords extends Table {
   @override
   String get tableName => 'icon_records';
@@ -18,7 +15,8 @@ class IconRecords extends Table {
 }
 
 @DriftAccessor(tables: [IconRecords])
-class IconRecordsDao extends DatabaseAccessor<Database> with _$IconRecordsDaoMixin {
+class IconRecordsDao extends DatabaseAccessor<Database>
+    with _$IconRecordsDaoMixin {
   IconRecordsDao(super.attachedDatabase);
 
   final int maxCapacity = 1000;
@@ -43,23 +41,23 @@ class IconRecordsDao extends DatabaseAccessor<Database> with _$IconRecordsDaoMix
     final now = DateTime.now().millisecondsSinceEpoch;
 
     await transaction(() async {
-      await into(iconRecords).insert(
+      await into(iconRecords).insertOnConflictUpdate(
         IconRecordsCompanion.insert(url: url, lastAccessed: now),
-        mode: InsertMode.replace,
       );
 
       final count = await iconRecords.count.getSingle() ?? 0;
 
       if (count > maxCapacity) {
-        final oldestRecords = await (select(iconRecords)
-              ..orderBy([
-                (t) => OrderingTerm(
+        final oldestRecords =
+            await (select(iconRecords)
+                  ..orderBy([
+                    (t) => OrderingTerm(
                       expression: t.lastAccessed,
                       mode: OrderingMode.asc,
                     ),
-              ])
-              ..limit(count - maxCapacity))
-            .get();
+                  ])
+                  ..limit(count - maxCapacity))
+                .get();
 
         final oldestUrls = oldestRecords.map((e) => e.url).toList();
         await (delete(iconRecords)..where((t) => t.url.isIn(oldestUrls))).go();
@@ -72,9 +70,9 @@ class IconRecordsDao extends DatabaseAccessor<Database> with _$IconRecordsDaoMix
           ..where((t) => t.url.contains(query))
           ..orderBy([
             (t) => OrderingTerm(
-                  expression: t.lastAccessed,
-                  mode: OrderingMode.desc,
-                ),
+              expression: t.lastAccessed,
+              mode: OrderingMode.desc,
+            ),
           ]))
         .get();
   }
