@@ -1075,13 +1075,56 @@ class _IconEditDialog extends StatefulWidget {
   State<_IconEditDialog> createState() => _IconEditDialogState();
 }
 
-class _IconEditDialogState extends State<_IconEditDialog> {
-  void _handleSearch(String value) {
-    print(value);
+class _IconEditDialogState extends State<_IconEditDialog>
+    with TickerProviderStateMixin {
+  late final TextEditingController _srcController;
+  StreamSubscription? _streamSubscription;
+  late final _ImageAnimatedValueNotifier<File?> _imageNotifier;
+
+  @override
+  void initState() {
+    super.initState();
+    _srcController = TextEditingController(text: widget.value);
+    _imageNotifier = _ImageAnimatedValueNotifier<File?>(
+      vsync: this,
+      duration: commonDuration * 2,
+    );
+    if (widget.value != null && widget.value!.isNotEmpty) {
+      _getImageFormCache();
+    }
+  }
+
+  void _handleInputChange() {
+    debouncer.call('_IconEditDialogState_search', () {
+      _getImageFormCache();
+    });
+  }
+
+  void _getImageFormCache() {
+    final text = _srcController.text;
+    _streamSubscription?.cancel();
+    _imageNotifier.setValue(null);
+    if (text.isEmpty) return;
+    _streamSubscription = DefaultCacheManager().getFileStream(text).listen((
+      data,
+    ) {
+      if (mounted && data is FileInfo) {
+        _imageNotifier.setValue(data.file);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _imageNotifier.dispose();
+    _streamSubscription?.cancel();
+    _srcController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final dimension = globalState.measure.bodyLargeHeight + 28;
     return CommonDialog(
       title: '图标',
       actions: [
@@ -1094,20 +1137,52 @@ class _IconEditDialogState extends State<_IconEditDialog> {
       child: Column(
         mainAxisSize: MainAxisSize.max,
         children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (widget.value != null)
-                CommonTargetIcon(src: widget.value!, size: 50),
-              Flexible(
-                child: IntrinsicHeight(
+          SizedBox(
+            height: dimension,
+            child: Row(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                ListenableBuilder(
+                  listenable: _imageNotifier,
+                  builder: (_, __) {
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Align(
+                          widthFactor: _imageNotifier.layoutFactor,
+                          alignment: Alignment.centerLeft,
+                          child: Opacity(
+                            opacity: _imageNotifier.opacity.clamp(0, 1.0),
+                            child: Transform.scale(
+                              scale: 0.5 + (0.5 * _imageNotifier.scale),
+                              child: SizedBox.square(
+                                dimension: dimension,
+                                child: _imageNotifier.value != null
+                                    ? CommonCard(
+                                        padding: EdgeInsets.all(6),
+                                        child: CommonImage(
+                                          isSvg: _srcController.text.isSvg,
+                                          data: _imageNotifier.value!,
+                                        ),
+                                      )
+                                    : null,
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 12 * _imageNotifier.layoutFactor),
+                      ],
+                    );
+                  },
+                ),
+                Flexible(
                   child: CommonCard(
                     child: ListItem(
-                      minTileHeight: 54,
                       title: TextField(
+                        controller: _srcController,
                         keyboardType: TextInputType.url,
-                        onChanged: (value) {
-                          _handleSearch(value);
+                        onChanged: (_) {
+                          _handleInputChange();
                         },
                         decoration: InputDecoration.collapsed(
                           border: NoInputBorder(),
@@ -1117,33 +1192,69 @@ class _IconEditDialogState extends State<_IconEditDialog> {
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-
-          // Expanded(
-          //   child: Row(
-          //     mainAxisSize: MainAxisSize.min,
-          //     children: [
-          //       CommonCard(
-          //         child: ListItem(
-          //           minTileHeight: 54,
-          //           title: TextField(
-          //             onChanged: (value) {
-          //               _handleSearch(value);
-          //             },
-          //             decoration: InputDecoration.collapsed(
-          //               border: NoInputBorder(),
-          //               hintText: '图标链接',
-          //             ),
-          //           ),
-          //         ),
-          //       ),
-          //     ],
-          //   ),
-          // ),
         ],
       ),
     );
+  }
+}
+
+class _ImageAnimatedValueNotifier<T> extends ChangeNotifier {
+  _ImageAnimatedValueNotifier({
+    required TickerProvider vsync,
+    required Duration duration,
+    T? initialValue,
+  }) : _value = initialValue {
+    _controller = AnimationController(vsync: vsync, duration: duration);
+    _layout = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.0, 0.6, curve: Curves.easeInOut),
+    );
+    _opacity = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.6, 1.0, curve: Curves.easeOutBack),
+    );
+    _scale = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.6, 1.0, curve: Curves.easeOutBack),
+    );
+    _controller.addListener(notifyListeners);
+  }
+
+  late final AnimationController _controller;
+  late final CurvedAnimation _layout;
+  late final CurvedAnimation _opacity;
+  late final CurvedAnimation _scale;
+
+  T? _value;
+
+  double get layoutFactor => _layout.value;
+
+  double get opacity => _opacity.value;
+
+  double get scale => _scale.value;
+
+  T? get value => _value;
+
+  void setValue(T? newValue) {
+    if (newValue == null) {
+      _controller.reverse().then((_) {
+        _value = null;
+        notifyListeners();
+      });
+    } else {
+      _value = newValue;
+      notifyListeners();
+      _controller.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(notifyListeners);
+    _controller.dispose();
+    super.dispose();
   }
 }

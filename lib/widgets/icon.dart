@@ -95,13 +95,39 @@ class _ImageCacheWidgetState extends State<ImageCacheWidget> {
         if (data == null) {
           return widget.defaultWidget;
         }
-        return widget.src.isSvg
-            ? SvgPicture.file(
-                data,
-                errorBuilder: (_, _, _) => widget.defaultWidget,
-              )
-            : Image.file(data, errorBuilder: (_, _, _) => widget.defaultWidget);
+        return CommonImage(
+          data: data,
+          isSvg: widget.src.isSvg,
+          errorBuilder: (_, _, _) {
+            return widget.defaultWidget;
+          },
+        );
       },
     );
+  }
+}
+
+class CommonImage extends StatelessWidget {
+  final File data;
+  final bool isSvg;
+  final Widget Function(
+    BuildContext context,
+    Object error,
+    StackTrace? stackTrace,
+  )?
+  errorBuilder;
+
+  const CommonImage({
+    super.key,
+    required this.data,
+    this.errorBuilder,
+    this.isSvg = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return isSvg
+        ? SvgPicture.file(data, errorBuilder: errorBuilder)
+        : Image.file(data, errorBuilder: errorBuilder);
   }
 }
