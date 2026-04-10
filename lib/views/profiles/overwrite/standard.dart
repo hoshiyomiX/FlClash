@@ -1,13 +1,23 @@
-part of 'overwrite.dart';
+import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/features/overwrite/rule.dart';
+import 'package:fl_clash/models/clash_config.dart';
+import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/state.dart';
+import 'package:fl_clash/widgets/widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class _StandardContent extends ConsumerStatefulWidget {
-  const _StandardContent();
+import 'widgets.dart';
+
+class StandardContent extends ConsumerStatefulWidget {
+  const StandardContent({super.key});
 
   @override
   ConsumerState createState() => _StandardContentState();
 }
 
-class _StandardContentState extends ConsumerState<_StandardContent> {
+class _StandardContentState extends ConsumerState<StandardContent> {
   final _key = utils.id;
   late int _profileId;
 
@@ -163,7 +173,7 @@ class _StandardContentState extends ConsumerState<_StandardContent> {
           ),
           SliverToBoxAdapter(child: SizedBox(height: 16)),
           SliverToBoxAdapter(
-            child: _MoreActionButton(
+            child: MoreActionButton(
               label: appLocalizations.controlGlobalAddedRules,
               onPressed: _handleToEditGlobalAddedRules,
             ),

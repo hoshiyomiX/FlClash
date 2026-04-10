@@ -1,7 +1,16 @@
-part of 'overwrite.dart';
+import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/database/database.dart';
+import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/widgets/widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class _CustomContent extends ConsumerWidget {
-  const _CustomContent();
+import '../widgets.dart';
+import 'custom_groups.dart';
+import 'custom_rules.dart';
+
+class CustomContent extends ConsumerWidget {
+  const CustomContent({super.key});
 
   void _handleUseDefault(WidgetRef ref, int profileId) async {
     final clashConfig = await ref.read(clashConfigProvider(profileId).future);
@@ -13,11 +22,11 @@ class _CustomContent extends ConsumerWidget {
   }
 
   void _handleToProxyGroupsView(BuildContext context, int profileId) {
-    BaseNavigator.push(context, _CustomProxyGroupsView(profileId));
+    BaseNavigator.push(context, CustomProxyGroupsView(profileId));
   }
 
   void _handleToRulesView(BuildContext context, int profileId) {
-    BaseNavigator.push(context, _CustomRulesView(profileId));
+    BaseNavigator.push(context, CustomRulesView(profileId));
   }
 
   @override
@@ -44,7 +53,7 @@ class _CustomContent extends ConsumerWidget {
         ),
         SliverToBoxAdapter(child: SizedBox(height: 8)),
         SliverToBoxAdapter(
-          child: _MoreActionButton(
+          child: MoreActionButton(
             label: '策略组',
             onPressed: () {
               _handleToProxyGroupsView(context, profileId);
@@ -69,7 +78,7 @@ class _CustomContent extends ConsumerWidget {
         ),
         SliverToBoxAdapter(child: SizedBox(height: 4)),
         SliverToBoxAdapter(
-          child: _MoreActionButton(
+          child: MoreActionButton(
             label: '规则',
             onPressed: () {
               _handleToRulesView(context, profileId);

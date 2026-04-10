@@ -1,11 +1,18 @@
-part of 'overwrite.dart';
+import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/widgets/widgets.dart';
+import 'package:flutter/material.dart';
 
-class _MoreActionButton extends StatelessWidget {
+class MoreActionButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String label;
   final Widget? trailing;
 
-  const _MoreActionButton({this.onPressed, required this.label, this.trailing});
+  const MoreActionButton({
+    super.key,
+    this.onPressed,
+    required this.label,
+    this.trailing,
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -1,15 +1,22 @@
-part of 'overwrite.dart';
+import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/features/overwrite/rule.dart';
+import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/state.dart';
+import 'package:fl_clash/widgets/widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class _CustomRulesView extends ConsumerStatefulWidget {
+class CustomRulesView extends ConsumerStatefulWidget {
   final int profileId;
 
-  const _CustomRulesView(this.profileId);
+  const CustomRulesView(this.profileId, {super.key});
 
   @override
   ConsumerState createState() => _CustomRulesViewState();
 }
 
-class _CustomRulesViewState extends ConsumerState<_CustomRulesView>
+class _CustomRulesViewState extends ConsumerState<CustomRulesView>
     with UniqueKeyStateMixin {
   int get _profileId => widget.profileId;
 

@@ -1,33 +1,18 @@
-// ignore_for_file: deprecated_member_use
-
 import 'dart:async';
-import 'dart:io';
 
-import 'package:collection/collection.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
-import 'package:fl_clash/database/database.dart';
 import 'package:fl_clash/enum/enum.dart';
-import 'package:fl_clash/features/overwrite/rule.dart';
-import 'package:fl_clash/models/models.dart' hide FileInfo;
-import 'package:fl_clash/providers/database.dart';
 import 'package:fl_clash/providers/providers.dart';
-import 'package:fl_clash/state.dart';
-import 'package:fl_clash/views/config/scripts.dart';
 import 'package:fl_clash/views/profiles/preview.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smooth_sheets/smooth_sheets.dart';
 
-part 'custom.dart';
-part 'custom_groups.dart';
-part 'custom_rules.dart';
-part 'script.dart';
-part 'standard.dart';
-part 'widgets.dart';
+import 'custom/custom.dart';
+import 'script.dart';
+import 'standard.dart';
+import 'widgets.dart';
 
 class OverwriteView extends ConsumerStatefulWidget {
   final int profileId;
@@ -174,9 +159,9 @@ class _Content extends ConsumerWidget {
     final overwriteType = ref.watch(overwriteTypeProvider(profileId));
     ref.listen(clashConfigProvider(profileId), (_, _) {});
     return switch (overwriteType) {
-      OverwriteType.standard => _StandardContent(),
-      OverwriteType.script => _ScriptContent(),
-      OverwriteType.custom => _CustomContent(),
+      OverwriteType.standard => StandardContent(),
+      OverwriteType.script => ScriptContent(),
+      OverwriteType.custom => CustomContent(),
     };
   }
 }
