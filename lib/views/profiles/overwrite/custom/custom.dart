@@ -1,6 +1,8 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/database/database.dart';
+import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
+import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +15,12 @@ class CustomContent extends ConsumerWidget {
   const CustomContent({super.key});
 
   void _handleUseDefault(WidgetRef ref, int profileId) async {
+    final res = await globalState.showMessage(
+      message: TextSpan(text: '确定后将会覆盖已有数据'),
+    );
+    if (res != true) {
+      return;
+    }
     final clashConfig = await ref.read(clashConfigProvider(profileId).future);
     await database.setProfileCustomData(
       profileId,
@@ -35,14 +43,17 @@ class CustomContent extends ConsumerWidget {
     final proxyGroupNum =
         ref.watch(proxyGroupsCountProvider(profileId)).value ?? -1;
     final ruleNum = ref.watch(customRulesCountProvider(profileId)).value ?? -1;
-    final hasDefault = ref.watch(
+    final vm2 = ref.watch(
       clashConfigProvider(profileId).select((state) {
         final clashConfig = state.value;
-        return ((clashConfig?.proxyGroups.length ?? 0) +
-                (clashConfig?.rules.length ?? 0)) >
-            0;
+        return VM2(
+          clashConfig?.proxyGroups.isNotEmpty ?? false,
+          clashConfig?.rules.isEmpty ?? false,
+        );
       }),
     );
+    final hasDefaultGroups = vm2.a;
+    final hasDefaultRules = vm2.b;
     return SliverMainAxisGroup(
       slivers: [
         SliverToBoxAdapter(child: SizedBox(height: 24)),
@@ -100,7 +111,8 @@ class CustomContent extends ConsumerWidget {
           ),
         ),
         SliverToBoxAdapter(child: SizedBox(height: 32)),
-        if (proxyGroupNum == 0 && ruleNum == 0 && hasDefault)
+        if ((proxyGroupNum == 0 && hasDefaultGroups) ||
+            (ruleNum == 0 && hasDefaultRules))
           SliverFillRemaining(
             hasScrollBody: false,
             child: Align(
@@ -108,7 +120,7 @@ class CustomContent extends ConsumerWidget {
               child: MaterialBanner(
                 elevation: 0,
                 dividerColor: Colors.transparent,
-                content: Text('检测到没有数据'),
+                content: Text('检测到配置中存在数据'),
                 actions: [
                   CommonMinFilledButtonTheme(
                     child: FilledButton.tonal(
