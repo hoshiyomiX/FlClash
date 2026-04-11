@@ -87,6 +87,7 @@ class _ImageCacheWidgetState extends State<ImageCacheWidget> {
         .getFileStreamV2(
           src,
           onRemoteNewLoaded: () {
+            commonPrint.log('The icon has been recorded: $src');
             database.iconRecordsDao.putIfAbsent(src);
           },
         )
