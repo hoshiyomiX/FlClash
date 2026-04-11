@@ -12,7 +12,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'custom/custom.dart';
 import 'script.dart';
 import 'standard.dart';
-import 'widgets.dart';
 
 class OverwriteView extends ConsumerStatefulWidget {
   final int profileId;

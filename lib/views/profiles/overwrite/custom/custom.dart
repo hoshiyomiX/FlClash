@@ -7,9 +7,8 @@ import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../widgets.dart';
-import 'custom_groups.dart';
-import 'custom_rules.dart';
+import 'groups.dart';
+import 'rules.dart';
 
 class CustomContent extends ConsumerWidget {
   const CustomContent({super.key});

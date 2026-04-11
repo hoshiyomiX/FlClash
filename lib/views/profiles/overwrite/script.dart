@@ -8,8 +8,6 @@ import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'widgets.dart';
-
 class ScriptContent extends ConsumerWidget {
   const ScriptContent({super.key});
 
