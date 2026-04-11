@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:fl_clash/common/cache.dart';
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/database/database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/svg.dart';
@@ -81,11 +83,18 @@ class _ImageCacheWidgetState extends State<ImageCacheWidget> {
       return;
     }
     _streamSubscription?.cancel();
-    _streamSubscription = _cacheMange.getFileStream(src).listen((data) {
-      if (mounted && data is FileInfo) {
-        _imageNotifier.value = data.file;
-      }
-    });
+    _streamSubscription = _cacheMange
+        .getFileStreamV2(
+          src,
+          onRemoteNewLoaded: () {
+            database.iconRecordsDao.putIfAbsent(src);
+          },
+        )
+        .listen((data) {
+          if (mounted && data is FileInfo) {
+            _imageNotifier.value = data.file;
+          }
+        });
   }
 
   @override
