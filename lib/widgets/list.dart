@@ -650,12 +650,14 @@ class DecorationListItem extends StatelessWidget {
   final Widget? leading;
   final Widget? trailing;
   final bool? isSelected;
+  final EdgeInsetsGeometry? contentPadding;
   final VoidCallback? onPressed;
   final double minVerticalPadding;
 
   const DecorationListItem({
     super.key,
     this.isDecorator = false,
+    this.contentPadding,
     required this.title,
     this.leading,
     this.trailing,
@@ -699,10 +701,8 @@ class DecorationListItem extends StatelessWidget {
             final isInfinite = constraints.maxHeight >= double.infinity;
             final tile = ListTile(
               leading: leading,
-              contentPadding: EdgeInsets.only(
-                right: trailing != null ? 8 : 16,
-                left: 16,
-              ),
+              contentPadding:
+                  contentPadding ?? const EdgeInsets.only(right: 16, left: 16),
               title: title,
               subtitle: subtitle,
               minVerticalPadding: minVerticalPadding,
@@ -754,6 +754,7 @@ class SelectedDecorationListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecorationListItem(
       title: title,
+      contentPadding: EdgeInsets.only(left: 16, right: 8),
       isDecorator: isDecorator,
       isSelected: isSelected,
       leading: leading,

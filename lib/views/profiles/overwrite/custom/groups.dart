@@ -71,6 +71,7 @@ class CustomProxyGroupsView extends ConsumerWidget {
         padding: EdgeInsets.symmetric(horizontal: 16),
         child: DecorationListItem(
           onPressed: onPressed,
+          contentPadding: EdgeInsets.only(left: 16, right: 8),
           minVerticalPadding: 8,
           leading: SizedBox.square(
             dimension: 32,

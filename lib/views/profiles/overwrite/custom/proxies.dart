@@ -82,6 +82,7 @@ class _EditProxiesViewState extends ConsumerState<EditProxiesView>
             minVerticalPadding: 8,
             title: Text(proxyName),
             subtitle: Text(proxyType ?? proxyName.toLowerCase()),
+            contentPadding: EdgeInsets.only(left: 16, right: 8),
             leading: CommonMinIconButtonTheme(
               child: IconButton.filledTonal(
                 onPressed: () {
@@ -91,19 +92,13 @@ class _EditProxiesViewState extends ConsumerState<EditProxiesView>
                 padding: EdgeInsets.zero,
               ),
             ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ReorderableDelayedDragStartListener(
-                  index: index,
-                  child: Container(
-                    color: Colors.transparent,
-                    padding: EdgeInsets.all(8),
-                    child: Icon(Icons.drag_handle),
-                  ),
-                ),
-                SizedBox(width: 4),
-              ],
+            trailing: ReorderableDelayedDragStartListener(
+              index: index,
+              child: Container(
+                color: Colors.transparent,
+                padding: EdgeInsets.all(8),
+                child: Icon(Icons.drag_handle),
+              ),
             ),
           ),
         ),
@@ -336,7 +331,6 @@ class _AddProxiesViewState extends ConsumerState<_AddProxiesView>
               child: IconButton.filledTonal(
                 onPressed: onAdd,
                 icon: Icon(Icons.add, size: 18),
-                padding: EdgeInsets.zero,
               ),
             ),
           ),

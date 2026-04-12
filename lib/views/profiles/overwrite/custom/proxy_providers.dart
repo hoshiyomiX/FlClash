@@ -83,6 +83,7 @@ class _EditProxyProvidersViewState extends ConsumerState<EditProxyProvidersView>
           child: DecorationListItem(
             minVerticalPadding: 8,
             title: Text(providerName),
+            contentPadding: EdgeInsets.only(left: 16, right: 8),
             leading: CommonMinIconButtonTheme(
               child: IconButton.filledTonal(
                 onPressed: () {
@@ -92,19 +93,13 @@ class _EditProxyProvidersViewState extends ConsumerState<EditProxyProvidersView>
                 padding: EdgeInsets.zero,
               ),
             ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ReorderableDelayedDragStartListener(
-                  index: index,
-                  child: Container(
-                    color: Colors.transparent,
-                    padding: EdgeInsets.all(8),
-                    child: Icon(Icons.drag_handle),
-                  ),
-                ),
-                SizedBox(width: 4),
-              ],
+            trailing: ReorderableDelayedDragStartListener(
+              index: index,
+              child: Container(
+                color: Colors.transparent,
+                padding: EdgeInsets.all(8),
+                child: Icon(Icons.drag_handle),
+              ),
             ),
           ),
         ),
@@ -314,7 +309,6 @@ class _AddProxyProvidersViewState extends ConsumerState<_AddProxyProvidersView>
               child: IconButton.filledTonal(
                 onPressed: onAdd,
                 icon: Icon(Icons.add, size: 18),
-                padding: EdgeInsets.zero,
               ),
             ),
           ),
