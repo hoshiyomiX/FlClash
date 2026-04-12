@@ -699,7 +699,10 @@ class DecorationListItem extends StatelessWidget {
             final isInfinite = constraints.maxHeight >= double.infinity;
             final tile = ListTile(
               leading: leading,
-              contentPadding: const EdgeInsets.only(right: 16, left: 16),
+              contentPadding: EdgeInsets.only(
+                right: trailing != null ? 8 : 16,
+                left: 16,
+              ),
               title: title,
               subtitle: subtitle,
               minVerticalPadding: minVerticalPadding,
