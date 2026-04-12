@@ -89,7 +89,11 @@ class CustomProxyGroupsView extends ConsumerWidget {
           subtitle: Text(proxyGroup.type.name),
           trailing: ReorderableDelayedDragStartListener(
             index: index,
-            child: Icon(Icons.drag_handle),
+            child: Container(
+              color: Colors.transparent,
+              padding: EdgeInsets.all(8),
+              child: Icon(Icons.drag_handle),
+            ),
           ),
         ),
       ),

@@ -764,16 +764,12 @@ class SelectedDecorationListItem extends StatelessWidget {
               onPressed();
             },
       subtitle: subtitle,
-      trailing: SizedBox(
-        width: 24,
-        height: 24,
-        child: CommonCheckBox(
-          value: isSelected,
-          isCircle: true,
-          onChanged: (_) {
-            onSelected();
-          },
-        ),
+      trailing: CommonCheckBox(
+        value: isSelected,
+        isCircle: true,
+        onChanged: (_) {
+          onSelected();
+        },
       ),
     );
   }

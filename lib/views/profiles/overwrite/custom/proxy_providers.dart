@@ -97,9 +97,13 @@ class _EditProxyProvidersViewState extends ConsumerState<EditProxyProvidersView>
               children: [
                 ReorderableDelayedDragStartListener(
                   index: index,
-                  child: Icon(Icons.drag_handle, size: 24),
+                  child: Container(
+                    color: Colors.transparent,
+                    padding: EdgeInsets.all(8),
+                    child: Icon(Icons.drag_handle),
+                  ),
                 ),
-                SizedBox(width: 12),
+                SizedBox(width: 4),
               ],
             ),
           ),
