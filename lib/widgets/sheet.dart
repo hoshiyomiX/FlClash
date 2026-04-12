@@ -299,16 +299,13 @@ class _AdaptiveSheetScaffoldState extends State<AdaptiveSheetScaffold> {
                   ),
                 ),
               ],
+              SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
               SizedBox(height: MediaQuery.of(context).viewPadding.bottom),
             ],
           ),
         ),
       );
     }
-    return CommonScaffold(
-      appBar: appBar,
-      backgroundColor: backgroundColor,
-      body: widget.body,
-    );
+    return CommonScaffold(appBar: appBar, body: widget.body);
   }
 }

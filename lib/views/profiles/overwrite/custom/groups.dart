@@ -71,7 +71,7 @@ class CustomProxyGroupsView extends ConsumerWidget {
         padding: EdgeInsets.symmetric(horizontal: 16),
         child: DecorationListItem(
           onPressed: onPressed,
-          contentPadding: EdgeInsets.only(left: 16, right: 8),
+          contentPadding: EdgeInsets.only(left: 16, right: 0),
           minVerticalPadding: 8,
           leading: SizedBox.square(
             dimension: 32,
@@ -92,7 +92,7 @@ class CustomProxyGroupsView extends ConsumerWidget {
             index: index,
             child: Container(
               color: Colors.transparent,
-              padding: EdgeInsets.all(8),
+              padding: EdgeInsets.all(16),
               child: Icon(Icons.drag_handle),
             ),
           ),
@@ -157,6 +157,22 @@ class CustomProxyGroupsView extends ConsumerWidget {
                   onPressed: () {
                     _handleEditProxyGroup(context, proxyGroup, index);
                   },
+                );
+              },
+              proxyDecorator: (child, index, animation) {
+                final proxyGroup = proxyGroups[index];
+                return commonProxyDecorator(
+                  _buildItem(
+                    context: context,
+                    proxyGroup: proxyGroup,
+                    total: proxyGroups.length,
+                    index: index,
+                    onPressed: () {
+                      _handleEditProxyGroup(context, proxyGroup, index);
+                    },
+                  ),
+                  index,
+                  animation,
                 );
               },
               itemCount: proxyGroups.length,

@@ -82,7 +82,7 @@ class _EditProxiesViewState extends ConsumerState<EditProxiesView>
             minVerticalPadding: 8,
             title: Text(proxyName),
             subtitle: Text(proxyType ?? proxyName.toLowerCase()),
-            contentPadding: EdgeInsets.only(left: 16, right: 8),
+            contentPadding: EdgeInsets.only(left: 16, right: 0),
             leading: CommonMinIconButtonTheme(
               child: IconButton.filledTonal(
                 onPressed: () {
@@ -96,7 +96,7 @@ class _EditProxiesViewState extends ConsumerState<EditProxiesView>
               index: index,
               child: Container(
                 color: Colors.transparent,
-                padding: EdgeInsets.all(8),
+                padding: EdgeInsets.all(16),
                 child: Icon(Icons.drag_handle),
               ),
             ),
@@ -239,6 +239,26 @@ class _EditProxiesViewState extends ConsumerState<EditProxiesView>
                   );
                 },
                 itemCount: proxyNames.length,
+                proxyDecorator: (child, index, animation) {
+                  final proxyName = proxyNames[index];
+                  final position = ItemPosition.calculateVisualPosition(
+                    index,
+                    proxyNames,
+                    dismissItems,
+                  );
+                  return commonProxyDecorator(
+                    _buildItem(
+                      position: position,
+                      dismiss: dismissItems.contains(proxyName),
+                      proxyName: proxyName,
+                      proxyType: proxyTypeMap[proxyName],
+                      index: index,
+                      length: proxyNames.length,
+                    ),
+                    index,
+                    animation,
+                  );
+                },
                 onReorder: (int oldIndex, int newIndex) {
                   _handleReorder(oldIndex, newIndex);
                 },

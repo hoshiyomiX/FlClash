@@ -754,7 +754,7 @@ class SelectedDecorationListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecorationListItem(
       title: title,
-      contentPadding: EdgeInsets.only(left: 16, right: 8),
+      contentPadding: EdgeInsets.only(left: 16, right: 0),
       isDecorator: isDecorator,
       isSelected: isSelected,
       leading: leading,

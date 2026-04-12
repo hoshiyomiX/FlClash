@@ -83,7 +83,7 @@ class _EditProxyProvidersViewState extends ConsumerState<EditProxyProvidersView>
           child: DecorationListItem(
             minVerticalPadding: 8,
             title: Text(providerName),
-            contentPadding: EdgeInsets.only(left: 16, right: 8),
+            contentPadding: EdgeInsets.only(left: 16, right: 0),
             leading: CommonMinIconButtonTheme(
               child: IconButton.filledTonal(
                 onPressed: () {
@@ -97,7 +97,7 @@ class _EditProxyProvidersViewState extends ConsumerState<EditProxyProvidersView>
               index: index,
               child: Container(
                 color: Colors.transparent,
-                padding: EdgeInsets.all(8),
+                padding: EdgeInsets.all(16),
                 child: Icon(Icons.drag_handle),
               ),
             ),
@@ -229,6 +229,25 @@ class _EditProxyProvidersViewState extends ConsumerState<EditProxyProvidersView>
                   );
                 },
                 itemCount: proxyProviderNames.length,
+                proxyDecorator: (child, index, animation) {
+                  final providerName = proxyProviderNames[index];
+                  final position = ItemPosition.calculateVisualPosition(
+                    index,
+                    proxyProviderNames,
+                    dismissItems,
+                  );
+                  return commonProxyDecorator(
+                    _buildItem(
+                      position: position,
+                      dismiss: dismissItems.contains(providerName),
+                      providerName: providerName,
+                      index: index,
+                      length: proxyProviderNames.length,
+                    ),
+                    index,
+                    animation,
+                  );
+                },
                 onReorder: (int oldIndex, int newIndex) {
                   _handleReorder(oldIndex, newIndex);
                 },
