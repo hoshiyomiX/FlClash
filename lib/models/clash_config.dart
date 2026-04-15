@@ -336,6 +336,7 @@ abstract class GeoXUrl with _$GeoXUrl {
 @freezed
 abstract class ParsedRule with _$ParsedRule {
   const factory ParsedRule({
+    required int id,
     required RuleAction ruleAction,
     String? content,
     String? ruleTarget,
@@ -345,16 +346,28 @@ abstract class ParsedRule with _$ParsedRule {
     @Default(false) bool src,
   }) = _ParsedRule;
 
-  factory ParsedRule.parseString(String value) {
+  factory ParsedRule.parseString(String? value) {
+    return ParsedRule.parse(Rule.value(value ?? ''));
+  }
+
+  factory ParsedRule.parse(Rule rule) {
+    final id = rule.id;
+    final value = rule.value;
     if (value.isEmpty) {
       return ParsedRule(
+        id: id,
         ruleAction: RuleAction.DOMAIN,
         ruleTarget: RuleTarget.DIRECT.name,
       );
     }
     final splits = value.split(',');
     final shortSplits = splits
-        .where((item) => !item.contains('src') && !item.contains('no-resolve'))
+        .where(
+          (item) =>
+              !item.contains('src') &&
+              !item.contains('no-resolve') &&
+              item.isNotEmpty,
+        )
         .toList();
     final ruleAction = RuleAction.values.firstWhere(
       (item) => item.value == shortSplits.first,
@@ -373,12 +386,13 @@ abstract class ParsedRule with _$ParsedRule {
     String? ruleProvider;
 
     if (ruleAction == RuleAction.RULE_SET) {
-      ruleProvider = shortSplits.sublist(1, shortSplits.length - 1).join(',');
+      ruleProvider = shortSplits[1];
     } else {
-      content = shortSplits.sublist(1, shortSplits.length - 1).join(',');
+      content = shortSplits[1];
     }
 
     return ParsedRule(
+      id: id,
       ruleAction: ruleAction,
       content: content,
       src: splits.contains('src'),

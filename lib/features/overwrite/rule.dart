@@ -113,8 +113,9 @@ class _AddOrEditRuleDialogState extends State<AddOrEditRuleDialog> {
         (item) => DropdownMenuEntry(value: item.name, label: item.name),
       ),
     ];
-    if (widget.rule != null) {
-      final parsedRule = ParsedRule.parseString(widget.rule!.value);
+    final rule = widget.rule;
+    if (rule != null) {
+      final parsedRule = ParsedRule.parse(rule);
       _ruleAction = parsedRule.ruleAction;
       _contentController.text = parsedRule.content ?? '';
       _ruleTargetController.text = parsedRule.ruleTarget ?? '';
@@ -142,6 +143,7 @@ class _AddOrEditRuleDialogState extends State<AddOrEditRuleDialog> {
       return;
     }
     final parsedRule = ParsedRule(
+      id: widget.rule?.id ?? -1,
       ruleAction: _ruleAction,
       content: _contentController.text,
       ruleTarget: _ruleTargetController.text,

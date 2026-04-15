@@ -2703,7 +2703,8 @@ abstract class _$ProxyGroupProvider extends $Notifier<ProxyGroup> {
 @ProviderFor(RuleProvider)
 const ruleProvider = RuleProviderProvider._();
 
-final class RuleProviderProvider extends $NotifierProvider<RuleProvider, Rule> {
+final class RuleProviderProvider
+    extends $NotifierProvider<RuleProvider, ParsedRule> {
   const RuleProviderProvider._()
     : super(
         from: null,
@@ -2723,28 +2724,28 @@ final class RuleProviderProvider extends $NotifierProvider<RuleProvider, Rule> {
   RuleProvider create() => RuleProvider();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(Rule value) {
+  Override overrideWithValue(ParsedRule value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<Rule>(value),
+      providerOverride: $SyncValueProvider<ParsedRule>(value),
     );
   }
 }
 
-String _$ruleProviderHash() => r'2b021386d8df3a1b30bf46100a72e4e57b3130ea';
+String _$ruleProviderHash() => r'a099a9004ee968f00253cc3633a3bb981d4d7278';
 
-abstract class _$RuleProvider extends $Notifier<Rule> {
-  Rule build();
+abstract class _$RuleProvider extends $Notifier<ParsedRule> {
+  ParsedRule build();
   @$mustCallSuper
   @override
   void runBuild() {
     final created = build();
-    final ref = this.ref as $Ref<Rule, Rule>;
+    final ref = this.ref as $Ref<ParsedRule, ParsedRule>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<Rule, Rule>,
-              Rule,
+              AnyNotifier<ParsedRule, ParsedRule>,
+              ParsedRule,
               Object?,
               Object?
             >;

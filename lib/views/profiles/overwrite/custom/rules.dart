@@ -85,7 +85,7 @@ class _CustomRulesViewState extends ConsumerState<CustomRulesView>
           child: ProviderScope(
             overrides: [
               ruleProvider.overrideWithBuild(
-                (_, _) => rule ?? Rule(id: -1, value: ''),
+                (_, _) => ParsedRule.parse(rule ?? Rule(id: -1, value: '')),
               ),
             ],
             child: _AddOrEditRuleNestedSheet(),
@@ -143,7 +143,7 @@ class _CustomRulesViewState extends ConsumerState<CustomRulesView>
                   _handleSelected(rule.id);
                 },
                 onEdit: (rule) {
-                  // _handleAddOrUpdate(rule);
+                  _handleAddOrUpdate(rule: rule);
                 },
               ),
             ),
@@ -318,22 +318,35 @@ class _AddOrEditRuleViewState extends ConsumerState<_AddOrEditRuleView> {
   }
 
   Widget _buildTypeItem(RuleAction action) {
-    return _buildItem(title: Text('类型'), trailing: Text(action.name));
+    return _buildItem(
+      title: Text('类型'),
+      onPressed: () {},
+      trailing: Row(
+        spacing: 4,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            action.name,
+            style: context.textTheme.bodyLarge?.copyWith(
+              color: context.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          Icon(Icons.arrow_forward_ios),
+        ],
+      ),
+    );
   }
 
-  Widget _buildContentItem(String? name) {
+  Widget _buildContentItem(String? content) {
     return _buildItem(
       title: Text('内容'),
       trailing: TextFormField(
-        initialValue: name,
+        initialValue: content,
         keyboardType: TextInputType.name,
         onChanged: (value) {
-          // ref
-          //     .read(ruleProvider.notifier)
-          //     .update((state) => state.copyWith(name: value));
-        },
-        onFieldSubmitted: (_) {
-          // _handleSave();
+          ref
+              .read(ruleProvider.notifier)
+              .update((state) => state.copyWith(content: value));
         },
         textAlign: TextAlign.end,
         decoration: InputDecoration.collapsed(
@@ -344,8 +357,40 @@ class _AddOrEditRuleViewState extends ConsumerState<_AddOrEditRuleView> {
     );
   }
 
+  Widget _buildRuleProviderItem(String? ruleProvider) {
+    return _buildItem(
+      title: Text('规则集'),
+      trailing: TooltipText(
+        text: Text(
+          ruleProvider ?? '请选择规则集',
+          maxLines: 1,
+          style: context.textTheme.bodyLarge?.copyWith(
+            color: context.colorScheme.onSurfaceVariant,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildTargetItem(String? target) {
-    return _buildItem(title: Text('分流策略'), trailing: Text(target ?? ''));
+    return _buildItem(
+      title: Text('分流策略'),
+      onPressed: () {},
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 4,
+        children: [
+          Text(
+            target ?? '',
+            style: context.textTheme.bodyLarge?.copyWith(
+              color: context.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          Icon(Icons.arrow_forward_ios),
+        ],
+      ),
+    );
   }
 
   Widget _buildNoResolveItem(bool? noResolve) {
@@ -367,11 +412,10 @@ class _AddOrEditRuleViewState extends ConsumerState<_AddOrEditRuleView> {
     final isBottomSheet =
         SheetProvider.of(context)?.type == SheetType.bottomSheet;
     final rule = ref.watch(ruleProvider);
-    final parseRule = ParsedRule.parseString(rule.value);
 
     final height = ref.watch(
       viewSizeProvider.select(
-        (state) => isBottomSheet ? state.height * 0.65 : double.maxFinite,
+        (state) => isBottomSheet ? state.height * 0.60 : double.maxFinite,
       ),
     );
     return AdaptiveSheetScaffold(
@@ -386,22 +430,22 @@ class _AddOrEditRuleViewState extends ConsumerState<_AddOrEditRuleView> {
             generateSectionV3(
               title: '基础信息',
               items: [
-                _buildTypeItem(parseRule.ruleAction),
-                _buildContentItem(parseRule.content),
-                _buildTargetItem(parseRule.ruleTarget),
-                // _buildIconItem(proxyGroup.icon),
-                // _buildHiddenItem(proxyGroup.hidden),
-                // _buildDisableUDPItem(proxyGroup.disableUDP),
+                _buildTypeItem(rule.ruleAction),
+                if (rule.ruleAction != RuleAction.MATCH)
+                  rule.ruleAction == RuleAction.RULE_SET
+                      ? _buildContentItem(rule.ruleProvider)
+                      : _buildContentItem(rule.content),
+                _buildTargetItem(rule.ruleTarget),
               ],
             ),
-            // if (parseRule.ruleAction.hasParams)
-            generateSectionV3(
-              title: '附加参数',
-              items: [
-                _buildNoResolveItem(parseRule.noResolve),
-                _buildSrcItem(parseRule.src),
-              ],
-            ),
+            if (rule.ruleAction.hasParams)
+              generateSectionV3(
+                title: '附加参数',
+                items: [
+                  _buildNoResolveItem(rule.noResolve),
+                  _buildSrcItem(rule.src),
+                ],
+              ),
             generateSectionV3(
               title: '操作',
               items: [

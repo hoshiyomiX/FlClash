@@ -740,7 +740,7 @@ class ProxyGroupProvider extends _$ProxyGroupProvider
 @Riverpod(name: 'ruleProvider')
 class RuleProvider extends _$RuleProvider with AutoDisposeNotifierMixin {
   @override
-  Rule build() {
+  ParsedRule build() {
     return throw 'Initialization RuleProvider error';
   }
 }
