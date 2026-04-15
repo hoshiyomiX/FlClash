@@ -80,7 +80,13 @@ class _EditProxiesViewState extends ConsumerState<EditProxiesView>
           position: position,
           child: DecorationListItem(
             minVerticalPadding: 8,
-            title: Text(proxyName),
+            title: TooltipText(
+              text: Text(
+                proxyName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             subtitle: Text(proxyType ?? proxyName.toLowerCase()),
             contentPadding: EdgeInsets.only(left: 16, right: 0),
             leading: CommonMinIconButtonTheme(
@@ -148,10 +154,14 @@ class _EditProxiesViewState extends ConsumerState<EditProxiesView>
         {};
     final isBottomSheet =
         SheetProvider.of(context)?.type == SheetType.bottomSheet;
+
+    final height = ref.watch(
+      viewSizeProvider.select(
+        (state) => isBottomSheet ? state.height * 0.85 : double.maxFinite,
+      ),
+    );
     return SizedBox(
-      height: isBottomSheet
-          ? appController.viewSize.height * 0.85
-          : double.maxFinite,
+      height: height,
       child: AdaptiveSheetScaffold(
         title: '编辑代理',
         sheetTransparentToolBar: true,
@@ -345,7 +355,9 @@ class _AddProxiesViewState extends ConsumerState<_AddProxiesView>
           position: position,
           child: DecorationListItem(
             minVerticalPadding: 8,
-            title: Text(title),
+            title: TooltipText(
+              text: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
+            ),
             subtitle: Text(subtitle),
             trailing: CommonMinIconButtonTheme(
               child: IconButton.filledTonal(

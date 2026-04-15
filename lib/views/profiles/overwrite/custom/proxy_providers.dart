@@ -1,6 +1,5 @@
 import 'package:collection/collection.dart';
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart' hide FileInfo;
 import 'package:fl_clash/providers/providers.dart';
@@ -82,7 +81,13 @@ class _EditProxyProvidersViewState extends ConsumerState<EditProxyProvidersView>
           position: position,
           child: DecorationListItem(
             minVerticalPadding: 8,
-            title: Text(providerName),
+            title: TooltipText(
+              text: Text(
+                providerName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             contentPadding: EdgeInsets.only(left: 16, right: 0),
             leading: CommonMinIconButtonTheme(
               child: IconButton.filledTonal(
@@ -141,10 +146,13 @@ class _EditProxyProvidersViewState extends ConsumerState<EditProxyProvidersView>
     final proxyProviderNames = vm2.b;
     final isBottomSheet =
         SheetProvider.of(context)?.type == SheetType.bottomSheet;
+    final height = ref.watch(
+      viewSizeProvider.select(
+        (state) => isBottomSheet ? state.height * 0.85 : double.maxFinite,
+      ),
+    );
     return SizedBox(
-      height: isBottomSheet
-          ? appController.viewSize.height * 0.85
-          : double.maxFinite,
+      height: height,
       child: AdaptiveSheetScaffold(
         title: '编辑代理',
         sheetTransparentToolBar: true,
@@ -355,10 +363,13 @@ class _AddProxyProvidersViewState extends ConsumerState<_AddProxyProvidersView>
     final providerNames = allProxyProviders
         .where((item) => !excludeProxyProviderNames.contains(item))
         .toList();
+    final height = ref.watch(
+      viewSizeProvider.select(
+        (state) => isBottomSheet ? state.height * 0.80 : double.maxFinite,
+      ),
+    );
     return SizedBox(
-      height: isBottomSheet
-          ? appController.viewSize.height * 0.80
-          : double.maxFinite,
+      height: height,
       child: AdaptiveSheetScaffold(
         sheetTransparentToolBar: true,
         title: '添加代理集',

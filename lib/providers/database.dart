@@ -409,3 +409,15 @@ class ProfileDisabledRuleIds extends _$ProfileDisabledRuleIds
     database.rulesDao.putDisabledLink(profileId, ruleId);
   }
 }
+
+// @Riverpod(name: 'iconRecordProvider')
+// class IconRecordsProvider extends _$IconRecordsProvider
+//     with AsyncNotifierMixin {
+//   @override
+//   List<IconRecord> get value => state.value ?? [];
+//
+//   @override
+//   Stream<List<IconRecord>> build(int profileId) {
+//     return database.iconRecordsDao.
+//   }
+// }

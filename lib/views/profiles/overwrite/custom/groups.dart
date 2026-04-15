@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart' hide FileInfo;
 import 'package:fl_clash/providers/providers.dart';
@@ -765,13 +764,16 @@ class _EditProxyGroupViewState extends ConsumerState<_EditProxyGroupView> {
         SheetProvider.of(context)?.type == SheetType.bottomSheet;
     final profileId = ProfileIdProvider.of(context)!.profileId;
     final proxyGroup = ref.watch(proxyGroupProvider);
+    final height = ref.watch(
+      viewSizeProvider.select(
+        (state) => isBottomSheet ? state.height * 0.65 : double.maxFinite,
+      ),
+    );
     return AdaptiveSheetScaffold(
       sheetTransparentToolBar: true,
       actions: [IconButtonData(icon: Icons.check, onPressed: _handleSave)],
       body: SizedBox(
-        height: isBottomSheet
-            ? appController.viewSize.height * 0.65
-            : double.maxFinite,
+        height: height,
         child: ListView(
           padding: EdgeInsets.symmetric(
             horizontal: 16,

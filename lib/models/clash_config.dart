@@ -346,6 +346,12 @@ abstract class ParsedRule with _$ParsedRule {
   }) = _ParsedRule;
 
   factory ParsedRule.parseString(String value) {
+    if (value.isEmpty) {
+      return ParsedRule(
+        ruleAction: RuleAction.DOMAIN,
+        ruleTarget: RuleTarget.DIRECT.name,
+      );
+    }
     final splits = value.split(',');
     final shortSplits = splits
         .where((item) => !item.contains('src') && !item.contains('no-resolve'))

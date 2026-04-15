@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/database/database.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,7 @@ class IconEditDialog extends StatefulWidget {
 class _IconEditDialogState extends State<IconEditDialog>
     with TickerProviderStateMixin {
   late final TextEditingController _srcController;
+  late final ValueNotifier<List<IconRecord>> _recordsNotifier;
   StreamSubscription? _streamSubscription;
   late final _IconEditDialogStateNotifier<File?> _state;
 
@@ -26,6 +28,7 @@ class _IconEditDialogState extends State<IconEditDialog>
   void initState() {
     super.initState();
     _srcController = TextEditingController(text: widget.value);
+    _recordsNotifier = ValueNotifier([]);
     _state = _IconEditDialogStateNotifier<File?>(
       vsync: this,
       duration: commonDuration * 2,
@@ -35,10 +38,20 @@ class _IconEditDialogState extends State<IconEditDialog>
     }
   }
 
-  void _handleInputChange() {
+  Future<void> _handleInputChange() async {
     debouncer.call('_IconEditDialogState_search', () {
+      _handleUpdateIconRecords();
       _getImageFormCache();
     });
+  }
+
+  Future<void> _handleUpdateIconRecords() async {
+    final text = _srcController.text;
+    final res = await database.iconRecordsDao.query(text);
+    if (mounted) {
+      print(res);
+      _recordsNotifier.value = res;
+    }
   }
 
   void _getImageFormCache() {
@@ -57,6 +70,7 @@ class _IconEditDialogState extends State<IconEditDialog>
 
   @override
   void dispose() {
+    _recordsNotifier.dispose();
     _state.dispose();
     _streamSubscription?.cancel();
     _srcController.dispose();
@@ -140,6 +154,14 @@ class _IconEditDialogState extends State<IconEditDialog>
               ],
             ),
           ),
+          // Expanded(
+          //   child: ListView.builder(
+          //     itemBuilder: (_, _) {
+          //       return SizedBox();
+          //     },
+          //     itemCount: 0,
+          //   ),
+          // ),
         ],
       ),
     );
