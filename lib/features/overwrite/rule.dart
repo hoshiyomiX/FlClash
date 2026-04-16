@@ -112,6 +112,7 @@ class _AddOrEditRuleDialogState extends State<AddOrEditRuleDialog> {
       ...RuleTarget.values.map(
         (item) => DropdownMenuEntry(value: item.name, label: item.name),
       ),
+      DropdownMenuEntry(value: 'MATCH', label: 'MATCH'),
     ];
     final rule = widget.rule;
     if (rule != null) {

@@ -16,6 +16,8 @@ class Measure {
       text: TextSpan(text: text.data, style: text.style ?? style),
       maxLines: text.maxLines,
       textScaler: _textScaler,
+      ellipsis: '...',
+      locale: Localizations.localeOf(context),
       textDirection: text.textDirection ?? TextDirection.ltr,
     )..layout(maxWidth: maxWidth ?? double.infinity);
   }

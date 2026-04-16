@@ -401,6 +401,44 @@ extension RuleActionExt on RuleAction {
     RuleAction.IP_SUFFIX,
     RuleAction.RULE_SET,
   ].contains(this);
+
+  String get desc {
+    return switch (this) {
+      RuleAction.DOMAIN => '匹配完整域名',
+      RuleAction.DOMAIN_SUFFIX => '匹配域名后缀',
+      RuleAction.DOMAIN_KEYWORD => '匹配域名关键字',
+      RuleAction.DOMAIN_REGEX => '通配符匹配，仅支持*和?通配符',
+      RuleAction.GEOSITE => '匹配 Geosite 内的域名',
+      RuleAction.IP_CIDR => '匹配 IP 地址范围',
+      RuleAction.IP_CIDR6 => '匹配 IP 地址范围, IP-CIDR6 只是一个别名',
+      RuleAction.IP_SUFFIX => '匹配 IP 后缀范围',
+      RuleAction.IP_ASN => '匹配 IP 所属 ASN',
+      RuleAction.GEOIP => '匹配 IP 所属国家代码',
+      RuleAction.SRC_GEOIP => '匹配来源 IP 所属国家代码',
+      RuleAction.SRC_IP_ASN => '匹配来源 IP 所属 ASN',
+      RuleAction.SRC_IP_CIDR => '匹配来源 IP 地址范围',
+      RuleAction.SRC_IP_SUFFIX => '匹配来源 IP 后缀范围',
+      RuleAction.DST_PORT => '匹配请求目标端口范围',
+      RuleAction.SRC_PORT => '匹配请求来源端口范围',
+      RuleAction.IN_PORT => '匹配入站端口',
+      RuleAction.IN_TYPE => '匹配入站类型',
+      RuleAction.IN_USER => '匹配入站用户名，支持使用 / 分隔多个用户名',
+      RuleAction.IN_NAME => '匹配入站名称',
+      RuleAction.PROCESS_PATH => '使用完整进程路径匹配',
+      RuleAction.PROCESS_PATH_REGEX => '使用进程路径正则表达式匹配',
+      RuleAction.PROCESS_NAME => '使用进程匹配，在Android平台可以匹配包名',
+      RuleAction.PROCESS_NAME_REGEX => '使用进程名称正则表达式匹配，在Android平台可以匹配包名',
+      RuleAction.UID => '匹配 Linux USER ID',
+      RuleAction.NETWORK => '匹配TCP或者UDP',
+      RuleAction.DSCP => '匹配DSCP标记 (仅限 tproxy udp 入站)',
+      RuleAction.RULE_SET => '引用规则集合，需配置rule-providers',
+      RuleAction.AND => '逻辑规则 AND',
+      RuleAction.OR => '逻辑规则 OR',
+      RuleAction.NOT => '逻辑规则 NOT',
+      RuleAction.SUB_RULE => '匹配至子规则,需要注意括号的使用',
+      RuleAction.MATCH => '匹配所有请求，无需条件',
+    };
+  }
 }
 
 enum OverrideRuleType { override, added }
@@ -412,7 +450,7 @@ enum OverwriteType {
   custom,
 }
 
-enum RuleTarget { DIRECT, REJECT, MATCH }
+enum RuleTarget { DIRECT, REJECT }
 
 enum RestoreStrategy { compatible, override }
 

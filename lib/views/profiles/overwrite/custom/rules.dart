@@ -2,6 +2,7 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/features/overwrite/rule.dart';
 import 'package:fl_clash/models/clash_config.dart';
+import 'package:fl_clash/models/state.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/widgets.dart';
@@ -321,6 +322,9 @@ class _AddOrEditRuleViewState extends ConsumerState<_AddOrEditRuleView> {
     final res = await Navigator.of(
       context,
     ).push(PagedSheetRoute(builder: (context) => _RuleTypeSelectedView()));
+    if (res == null) {
+      return;
+    }
     ref
         .read(ruleProvider.notifier)
         .update((state) => state.copyWith(ruleAction: res));
@@ -368,10 +372,22 @@ class _AddOrEditRuleViewState extends ConsumerState<_AddOrEditRuleView> {
     );
   }
 
+  Future<void> _handleSelectedRuleProvider() async {
+    final res = await Navigator.of(
+      context,
+    ).push(PagedSheetRoute(builder: (context) => _RuleProviderSelectedView()));
+    if (res == null) {
+      return;
+    }
+    ref
+        .read(ruleProvider.notifier)
+        .update((state) => state.copyWith(ruleProvider: res));
+  }
+
   Widget _buildRuleProviderItem(String? ruleProvider) {
     return _buildItem(
       title: Text('规则集'),
-      onPressed: () {},
+      onPressed: _handleSelectedRuleProvider,
       trailing: Row(
         spacing: 4,
         mainAxisSize: MainAxisSize.min,
@@ -392,10 +408,22 @@ class _AddOrEditRuleViewState extends ConsumerState<_AddOrEditRuleView> {
     );
   }
 
+  Future<void> _handleSelectedTarget() async {
+    final res = await Navigator.of(
+      context,
+    ).push(PagedSheetRoute(builder: (context) => _RuleTargetSelectedView()));
+    if (res == null) {
+      return;
+    }
+    ref
+        .read(ruleProvider.notifier)
+        .update((state) => state.copyWith(ruleTarget: res));
+  }
+
   Widget _buildTargetItem(String? target) {
     return _buildItem(
       title: Text('分流策略'),
-      onPressed: () {},
+      onPressed: _handleSelectedTarget,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         spacing: 4,
@@ -493,6 +521,188 @@ class _AddOrEditRuleViewState extends ConsumerState<_AddOrEditRuleView> {
 class _RuleTypeSelectedView extends ConsumerWidget {
   const _RuleTypeSelectedView();
 
+  @override
+  Widget build(BuildContext context, ref) {
+    final isBottomSheet =
+        SheetProvider.of(context)?.type == SheetType.bottomSheet;
+    final height = ref.watch(
+      viewSizeProvider.select(
+        (state) => isBottomSheet ? state.height * 0.70 : double.maxFinite,
+      ),
+    );
+    final currentRuleAction = ref.watch(
+      ruleProvider.select((state) => state.ruleAction),
+    );
+    return AdaptiveSheetScaffold(
+      sheetTransparentToolBar: true,
+      body: SizedBox(
+        height: height,
+        child: ListView.builder(
+          padding: EdgeInsets.symmetric(
+            horizontal: 16,
+          ).copyWith(bottom: 20, top: context.sheetTopPadding),
+          itemCount: RuleAction.values.length,
+          itemBuilder: (_, index) {
+            final ruleAction = RuleAction.values[index];
+            final position = ItemPosition.get(index, RuleAction.values.length);
+            return ItemPositionProvider(
+              position: position,
+              child: DecorationListItem(
+                onPressed: () {
+                  Navigator.of(context).pop(ruleAction);
+                },
+                subtitle: Text(ruleAction.desc),
+                title: Text(ruleAction.name),
+                trailing: ruleAction == currentRuleAction
+                    ? Icon(Icons.check)
+                    : null,
+              ),
+            );
+          },
+        ),
+      ),
+      title: '代理类型',
+    );
+  }
+}
+
+class _RuleTargetSelectedView extends ConsumerWidget {
+  const _RuleTargetSelectedView();
+
+  Widget _buildItem({
+    required String title,
+    String? subtitle,
+    required ItemPosition position,
+    bool isChecked = true,
+    final VoidCallback? onPressed,
+  }) {
+    return ItemPositionProvider(
+      position: position,
+      child: DecorationListItem(
+        onPressed: onPressed,
+        subtitle: subtitle != null ? Text(subtitle) : null,
+        title: TooltipText(
+          text: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
+        ),
+        trailing: isChecked ? Icon(Icons.check) : null,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, ref) {
+    final isBottomSheet =
+        SheetProvider.of(context)?.type == SheetType.bottomSheet;
+    final profileId = ProfileIdProvider.of(context)!.profileId;
+    final height = ref.watch(
+      viewSizeProvider.select(
+        (state) => isBottomSheet ? state.height * 0.70 : double.maxFinite,
+      ),
+    );
+    final vm2 = ref.watch(
+      clashConfigProvider(profileId).select(
+        (state) =>
+            VM2(state.value?.proxyGroups ?? [], state.value?.proxies ?? []),
+      ),
+    );
+    final proxyGroups = vm2.a;
+    final proxies = vm2.b;
+    final currentRuleTarget = ref.watch(
+      ruleProvider.select((state) => state.ruleTarget),
+    );
+    return AdaptiveSheetScaffold(
+      sheetTransparentToolBar: true,
+      body: SizedBox(
+        height: height,
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: SizedBox(height: context.sheetTopPadding),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverToBoxAdapter(
+                child: InfoHeader(info: Info(label: '基础策略')),
+              ),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverList.builder(
+                itemBuilder: (_, index) {
+                  final target = RuleTarget.values[index];
+                  final position = ItemPosition.get(
+                    index,
+                    RuleTarget.values.length,
+                  );
+                  return _buildItem(
+                    title: target.name,
+                    position: position,
+                    onPressed: () {},
+                    isChecked: currentRuleTarget == target.name ? true : false,
+                  );
+                },
+                itemCount: RuleTarget.values.length,
+              ),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverToBoxAdapter(
+                child: InfoHeader(info: Info(label: '策略组')),
+              ),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverList.builder(
+                itemBuilder: (_, index) {
+                  final proxyGroup = proxyGroups[index];
+                  final position = ItemPosition.get(index, proxyGroups.length);
+                  return _buildItem(
+                    title: proxyGroup.name,
+                    subtitle: proxyGroup.type.name,
+                    position: position,
+                    onPressed: () {},
+                    isChecked: currentRuleTarget == proxyGroup.name
+                        ? true
+                        : false,
+                  );
+                },
+                itemCount: proxyGroups.length,
+              ),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverToBoxAdapter(
+                child: InfoHeader(info: Info(label: '代理')),
+              ),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverList.builder(
+                itemBuilder: (_, index) {
+                  final proxy = proxies[index];
+                  final position = ItemPosition.get(index, proxies.length);
+                  return _buildItem(
+                    title: proxy.name,
+                    subtitle: proxy.type,
+                    position: position,
+                    onPressed: () {},
+                    isChecked: currentRuleTarget == proxy.name ? true : false,
+                  );
+                },
+                itemCount: proxies.length,
+              ),
+            ),
+          ],
+        ),
+      ),
+      title: '分流策略',
+    );
+  }
+}
+
+class _RuleProviderSelectedView extends ConsumerWidget {
+  const _RuleProviderSelectedView();
+
   Widget _buildItem({
     required Widget title,
     Widget? trailing,
@@ -522,13 +732,19 @@ class _RuleTypeSelectedView extends ConsumerWidget {
   Widget build(BuildContext context, ref) {
     final isBottomSheet =
         SheetProvider.of(context)?.type == SheetType.bottomSheet;
+    final profileId = ProfileIdProvider.of(context)!.profileId;
     final height = ref.watch(
       viewSizeProvider.select(
         (state) => isBottomSheet ? state.height * 0.70 : double.maxFinite,
       ),
     );
-    final currentRuleAction = ref.read(
-      ruleProvider.select((state) => state.ruleAction),
+    final ruleProviders = ref.watch(
+      clashConfigProvider(
+        profileId,
+      ).select((state) => state.value?.ruleProviders ?? []),
+    );
+    final currentRuleProvider = ref.watch(
+      ruleProvider.select((state) => state.ruleProvider),
     );
     return AdaptiveSheetScaffold(
       sheetTransparentToolBar: true,
@@ -538,26 +754,26 @@ class _RuleTypeSelectedView extends ConsumerWidget {
           padding: EdgeInsets.symmetric(
             horizontal: 16,
           ).copyWith(bottom: 20, top: context.sheetTopPadding),
-          itemCount: RuleAction.values.length,
+          itemCount: ruleProviders.length,
           itemBuilder: (_, index) {
-            final ruleAction = RuleAction.values[index];
+            final ruleProvider = ruleProviders[index];
             final position = ItemPosition.get(index, RuleAction.values.length);
             return ItemPositionProvider(
               position: position,
               child: _buildItem(
                 onPressed: () {
-                  Navigator.of(context).pop(ruleAction);
+                  Navigator.of(context).pop(ruleProvider);
                 },
-                title: Text(ruleAction.name),
-                trailing: ruleAction == currentRuleAction
-                    ? Icon(Icons.check, size: 20)
+                title: Text(ruleProvider),
+                trailing: currentRuleProvider == ruleProvider
+                    ? Icon(Icons.check)
                     : null,
               ),
             );
           },
         ),
       ),
-      title: '代理类型',
+      title: '规则集',
     );
   }
 }

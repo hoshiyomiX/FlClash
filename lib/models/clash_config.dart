@@ -479,9 +479,9 @@ abstract class ClashConfig with _$ClashConfig {
     @JsonKey(name: 'proxy-providers', fromJson: _genProviders)
     @Default([])
     List<String> proxyProviders,
-    // @JsonKey(name: 'rule-providers', fromJson: _genRuleProviders)
-    // @Default([])
-    // List<RuleProvider> ruleProvider,
+    @JsonKey(name: 'rule-providers', fromJson: _genProviders)
+    @Default([])
+    List<String> ruleProviders,
     // @JsonKey(name: 'sub-rules', fromJson: _genSubRules)
     // @Default([])
     // List<SubRule> subRules,
