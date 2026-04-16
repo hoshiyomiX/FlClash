@@ -317,10 +317,21 @@ class _AddOrEditRuleViewState extends ConsumerState<_AddOrEditRuleView> {
     );
   }
 
+  Future<void> _handleSelectedType() async {
+    final res = await Navigator.of(
+      context,
+    ).push(PagedSheetRoute(builder: (context) => _RuleTypeSelectedView()));
+    ref
+        .read(ruleProvider.notifier)
+        .update((state) => state.copyWith(ruleAction: res));
+  }
+
   Widget _buildTypeItem(RuleAction action) {
     return _buildItem(
       title: Text('类型'),
-      onPressed: () {},
+      onPressed: () {
+        _handleSelectedType();
+      },
       trailing: Row(
         spacing: 4,
         mainAxisSize: MainAxisSize.min,
@@ -360,15 +371,23 @@ class _AddOrEditRuleViewState extends ConsumerState<_AddOrEditRuleView> {
   Widget _buildRuleProviderItem(String? ruleProvider) {
     return _buildItem(
       title: Text('规则集'),
-      trailing: TooltipText(
-        text: Text(
-          ruleProvider ?? '请选择规则集',
-          maxLines: 1,
-          style: context.textTheme.bodyLarge?.copyWith(
-            color: context.colorScheme.onSurfaceVariant,
-            overflow: TextOverflow.ellipsis,
+      onPressed: () {},
+      trailing: Row(
+        spacing: 4,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TooltipText(
+            text: Text(
+              ruleProvider ?? '请选择规则集',
+              maxLines: 1,
+              style: context.textTheme.bodyLarge?.copyWith(
+                color: context.colorScheme.onSurfaceVariant,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ),
-        ),
+          Icon(Icons.arrow_forward_ios),
+        ],
       ),
     );
   }
@@ -412,7 +431,6 @@ class _AddOrEditRuleViewState extends ConsumerState<_AddOrEditRuleView> {
     final isBottomSheet =
         SheetProvider.of(context)?.type == SheetType.bottomSheet;
     final rule = ref.watch(ruleProvider);
-
     final height = ref.watch(
       viewSizeProvider.select(
         (state) => isBottomSheet ? state.height * 0.60 : double.maxFinite,
@@ -420,9 +438,10 @@ class _AddOrEditRuleViewState extends ConsumerState<_AddOrEditRuleView> {
     );
     return AdaptiveSheetScaffold(
       sheetTransparentToolBar: true,
-      body: SizedBox(
-        height: height,
+      body: Container(
+        constraints: BoxConstraints(maxHeight: height),
         child: ListView(
+          shrinkWrap: true,
           padding: EdgeInsets.symmetric(
             horizontal: 16,
           ).copyWith(bottom: 20, top: context.sheetTopPadding),
@@ -433,7 +452,7 @@ class _AddOrEditRuleViewState extends ConsumerState<_AddOrEditRuleView> {
                 _buildTypeItem(rule.ruleAction),
                 if (rule.ruleAction != RuleAction.MATCH)
                   rule.ruleAction == RuleAction.RULE_SET
-                      ? _buildContentItem(rule.ruleProvider)
+                      ? _buildRuleProviderItem(rule.ruleProvider)
                       : _buildContentItem(rule.content),
                 _buildTargetItem(rule.ruleTarget),
               ],
@@ -467,6 +486,78 @@ class _AddOrEditRuleViewState extends ConsumerState<_AddOrEditRuleView> {
         ),
       ),
       title: rule.id == -1 ? '添加规则' : '编辑规则',
+    );
+  }
+}
+
+class _RuleTypeSelectedView extends ConsumerWidget {
+  const _RuleTypeSelectedView();
+
+  Widget _buildItem({
+    required Widget title,
+    Widget? trailing,
+    final VoidCallback? onPressed,
+  }) {
+    return DecorationListItem(
+      onPressed: onPressed,
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        spacing: 16,
+        children: [
+          title,
+          if (trailing != null)
+            Flexible(
+              child: Container(
+                alignment: Alignment.centerRight,
+                height: globalState.measure.bodyLargeHeight + 24,
+                child: trailing,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, ref) {
+    final isBottomSheet =
+        SheetProvider.of(context)?.type == SheetType.bottomSheet;
+    final height = ref.watch(
+      viewSizeProvider.select(
+        (state) => isBottomSheet ? state.height * 0.70 : double.maxFinite,
+      ),
+    );
+    final currentRuleAction = ref.read(
+      ruleProvider.select((state) => state.ruleAction),
+    );
+    return AdaptiveSheetScaffold(
+      sheetTransparentToolBar: true,
+      body: SizedBox(
+        height: height,
+        child: ListView.builder(
+          padding: EdgeInsets.symmetric(
+            horizontal: 16,
+          ).copyWith(bottom: 20, top: context.sheetTopPadding),
+          itemCount: RuleAction.values.length,
+          itemBuilder: (_, index) {
+            final ruleAction = RuleAction.values[index];
+            final position = ItemPosition.get(index, RuleAction.values.length);
+            return ItemPositionProvider(
+              position: position,
+              child: _buildItem(
+                onPressed: () {
+                  Navigator.of(context).pop(ruleAction);
+                },
+                title: Text(ruleAction.name),
+                trailing: ruleAction == currentRuleAction
+                    ? Icon(Icons.check, size: 20)
+                    : null,
+              ),
+            );
+          },
+        ),
+      ),
+      title: '代理类型',
     );
   }
 }
