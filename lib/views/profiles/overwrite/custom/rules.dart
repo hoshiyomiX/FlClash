@@ -757,7 +757,7 @@ class _RuleProviderSelectedView extends ConsumerWidget {
           itemCount: ruleProviders.length,
           itemBuilder: (_, index) {
             final ruleProvider = ruleProviders[index];
-            final position = ItemPosition.get(index, RuleAction.values.length);
+            final position = ItemPosition.get(index, ruleProviders.length);
             return ItemPositionProvider(
               position: position,
               child: _buildItem(
