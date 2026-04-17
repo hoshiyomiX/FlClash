@@ -3171,11 +3171,11 @@ return $default(_that.id,_that.ruleAction,_that.content,_that.ruleTarget,_that.r
 
 
 class _ParsedRule implements ParsedRule {
-  const _ParsedRule({required this.id, required this.ruleAction, this.content, this.ruleTarget, this.ruleProvider, this.subRule, this.noResolve = false, this.src = false});
+  const _ParsedRule({this.id = -1, this.ruleAction = RuleAction.DOMAIN, this.content, this.ruleTarget, this.ruleProvider, this.subRule, this.noResolve = false, this.src = false});
   
 
-@override final  int id;
-@override final  RuleAction ruleAction;
+@override@JsonKey() final  int id;
+@override@JsonKey() final  RuleAction ruleAction;
 @override final  String? content;
 @override final  String? ruleTarget;
 @override final  String? ruleProvider;

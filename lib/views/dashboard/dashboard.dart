@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:defer_pointer/defer_pointer.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
@@ -73,7 +74,9 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                         iconSize: 20,
                         padding: EdgeInsets.zero,
                         style: IconButton.styleFrom(
-                          backgroundColor: Colors.greenAccent,
+                          backgroundColor: Colors.green.harmonizeWith(
+                            context.colorScheme.primary,
+                          ),
                           foregroundColor: switch (Theme.brightnessOf(
                             context,
                           )) {

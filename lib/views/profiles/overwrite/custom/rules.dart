@@ -3,7 +3,6 @@ import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/features/overwrite/rule.dart';
 import 'package:fl_clash/models/clash_config.dart';
 import 'package:fl_clash/models/common.dart';
-import 'package:fl_clash/models/state.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/widgets.dart';
@@ -73,7 +72,7 @@ class _CustomRulesViewState extends ConsumerState<CustomRulesView>
     ref.read(itemsProvider(key).notifier).value = {};
   }
 
-  void _handleAddOrUpdate({Rule? rule}) {
+  void _handleAddOrUpdate({ParsedRule? rule}) {
     showSheet(
       context: context,
       props: SheetProps(
@@ -86,14 +85,42 @@ class _CustomRulesViewState extends ConsumerState<CustomRulesView>
           profileId: widget.profileId,
           child: ProviderScope(
             overrides: [
-              ruleProvider.overrideWithBuild(
-                (_, _) => ParsedRule.parse(rule ?? Rule(id: -1, value: '')),
-              ),
+              ruleProvider.overrideWithBuild((_, _) => rule ?? ParsedRule()),
             ],
             child: _AddOrEditRuleNestedSheet(),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildItem({
+    required ParsedRule rule,
+    required bool isEditing,
+    required bool isSelected,
+    required int index,
+    required int total,
+    required Function() onSelected,
+    required Function(ParsedRule rule) onEdit,
+  }) {
+    final position = ItemPosition.get(index, total);
+    return ReorderableDelayedDragStartListener(
+      key: ValueKey(rule),
+      index: index,
+      child: ItemPositionProvider(
+        position: position,
+        child: RuleItemV2(
+          isEditing: isEditing,
+          isSelected: isSelected,
+          rule: rule,
+          onSelected: () {
+            _handleSelected(rule.id);
+          },
+          onEdit: (rule) {
+            _handleAddOrUpdate(rule: rule);
+          },
+        ),
+      ),
     );
   }
 
@@ -130,29 +157,43 @@ class _CustomRulesViewState extends ConsumerState<CustomRulesView>
         buildDefaultDragHandles: false,
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         itemBuilder: (_, index) {
-          final rule = rules[index];
-          final position = ItemPosition.get(index, rules.length);
-          return ReorderableDelayedDragStartListener(
-            key: ValueKey(rule),
+          final rule = ParsedRule.parse(rules[index]);
+          return _buildItem(
             index: index,
-            child: ItemPositionProvider(
-              position: position,
-              child: RuleItem(
-                isEditing: selectedRules.isNotEmpty,
-                isSelected: selectedRules.contains(rule.id),
-                rule: rule,
-                onSelected: () {
-                  _handleSelected(rule.id);
-                },
-                onEdit: (rule) {
-                  _handleAddOrUpdate(rule: rule);
-                },
-              ),
-            ),
+            total: rules.length,
+            isEditing: selectedRules.isNotEmpty,
+            isSelected: selectedRules.contains(rule.id),
+            rule: rule,
+            onSelected: () {
+              _handleSelected(rule.id);
+            },
+            onEdit: (rule) {
+              _handleAddOrUpdate(rule: rule);
+            },
           );
         },
         itemExtent: ruleItemHeight,
         itemCount: rules.length,
+        proxyDecorator: (child, index, animation) {
+          final rule = ParsedRule.parse(rules[index]);
+          return commonProxyDecorator(
+            _buildItem(
+              index: index,
+              total: rules.length,
+              isEditing: selectedRules.isNotEmpty,
+              isSelected: selectedRules.contains(rule.id),
+              rule: rule,
+              onSelected: () {
+                _handleSelected(rule.id);
+              },
+              onEdit: (rule) {
+                _handleAddOrUpdate(rule: rule);
+              },
+            ),
+            index,
+            animation,
+          );
+        },
         onReorder: _handleReorder,
       ),
     );
@@ -623,14 +664,14 @@ class _RuleTargetSelectedView extends ConsumerWidget {
         (state) => isBottomSheet ? state.height * 0.70 : double.maxFinite,
       ),
     );
-    final vm2 = ref.watch(
-      clashConfigProvider(profileId).select(
-        (state) =>
-            VM2(state.value?.proxyGroups ?? [], state.value?.proxies ?? []),
-      ),
+    final proxyGroups = ref.watch(
+      proxyGroupsProvider(profileId).select((state) => state.value ?? []),
     );
-    final proxyGroups = vm2.a;
-    final proxies = vm2.b;
+    final proxies = ref.watch(
+      clashConfigProvider(
+        profileId,
+      ).select((state) => state.value?.proxies ?? []),
+    );
     final currentRuleTarget = ref.watch(
       ruleProvider.select((state) => state.ruleTarget),
     );

@@ -336,8 +336,8 @@ abstract class GeoXUrl with _$GeoXUrl {
 @freezed
 abstract class ParsedRule with _$ParsedRule {
   const factory ParsedRule({
-    required int id,
-    required RuleAction ruleAction,
+    @Default(-1) int id,
+    @Default(RuleAction.DOMAIN) RuleAction ruleAction,
     String? content,
     String? ruleTarget,
     String? ruleProvider,
@@ -405,6 +405,13 @@ abstract class ParsedRule with _$ParsedRule {
 }
 
 extension ParsedRuleExt on ParsedRule {
+  String? get realContent {
+    return switch (ruleAction == RuleAction.RULE_SET) {
+      true => ruleProvider,
+      false => content,
+    };
+  }
+
   Rule get toRawRule {
     return Rule(
       id: id == -1 ? snowflake.id : id,

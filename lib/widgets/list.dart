@@ -650,6 +650,7 @@ class DecorationListItem extends StatelessWidget {
   final Widget? leading;
   final Widget? trailing;
   final bool? isSelected;
+  final double? horizontalTitleGap;
   final EdgeInsetsGeometry? contentPadding;
   final VoidCallback? onPressed;
   final double minVerticalPadding;
@@ -664,6 +665,7 @@ class DecorationListItem extends StatelessWidget {
     this.subtitle,
     this.isSelected,
     this.onPressed,
+    this.horizontalTitleGap,
     this.minVerticalPadding = 6,
   });
 
@@ -707,6 +709,7 @@ class DecorationListItem extends StatelessWidget {
               subtitle: subtitle,
               minVerticalPadding: minVerticalPadding,
               minTileHeight: 54,
+              horizontalTitleGap: horizontalTitleGap,
               trailing: trailing,
             );
             return Column(
@@ -735,6 +738,7 @@ class SelectedDecorationListItem extends StatelessWidget {
   final Widget? subtitle;
   final VoidCallback onSelected;
   final VoidCallback onPressed;
+  final double? horizontalTitleGap;
   final bool isDecorator;
   final Widget? leading;
 
@@ -742,6 +746,7 @@ class SelectedDecorationListItem extends StatelessWidget {
     super.key,
     required this.isSelected,
     required this.onSelected,
+    this.horizontalTitleGap,
     this.isEditing = false,
     required this.title,
     required this.onPressed,
@@ -758,6 +763,7 @@ class SelectedDecorationListItem extends StatelessWidget {
       isDecorator: isDecorator,
       isSelected: isSelected,
       leading: leading,
+      horizontalTitleGap: horizontalTitleGap,
       onPressed: isDecorator
           ? null
           : () {

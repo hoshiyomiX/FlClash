@@ -1,5 +1,6 @@
 library;
 
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/clash_config.dart';
@@ -44,6 +45,85 @@ class RuleItem extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: context.textTheme.bodyMedium?.toJetBrainsMono,
         ),
+      ),
+      onPressed: () {
+        onEdit(rule);
+      },
+    );
+  }
+}
+
+class RuleItemV2 extends StatelessWidget {
+  final bool isSelected;
+  final bool isEditing;
+  final ParsedRule rule;
+  final void Function() onSelected;
+  final void Function(ParsedRule rule) onEdit;
+
+  const RuleItemV2({
+    super.key,
+    required this.isSelected,
+    required this.rule,
+    required this.onSelected,
+    required this.onEdit,
+    this.isEditing = false,
+  });
+
+  Color _buildRuleTargetColor(BuildContext context, String ruleTarget) {
+    if (ruleTarget.toUpperCase() == 'DIRECT') {
+      return Colors.green.harmonizeWith(context.colorScheme.primary);
+    } else if (ruleTarget.toUpperCase() == 'REJECT') {
+      return context.colorScheme.error;
+    }
+    return context.colorScheme.onSecondaryContainer;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SelectedDecorationListItem(
+      isSelected: isSelected,
+      isEditing: isEditing,
+      horizontalTitleGap: 0,
+      onSelected: () {
+        onSelected();
+      },
+      title: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(rule.ruleAction.name),
+                Flexible(
+                  child: TooltipText(
+                    text: Text(
+                      rule.realContent ?? '',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.textTheme.bodySmall?.toJetBrainsMono
+                          .copyWith(
+                            color:
+                                context.colorScheme.onSurfaceVariant.opacity80,
+                          ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (rule.ruleTarget != null)
+            Text(
+              rule.ruleTarget!,
+              style: context.textTheme.bodyMedium?.copyWith(
+                color: _buildRuleTargetColor(context, rule.ruleTarget!),
+              ),
+            ),
+        ],
       ),
       onPressed: () {
         onEdit(rule);
