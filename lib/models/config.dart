@@ -90,9 +90,13 @@ abstract class AppSettingProps with _$AppSettingProps {
       _$AppSettingPropsFromJson(json);
 
   factory AppSettingProps.safeFromJson(Map<String, Object?>? json) {
-    return json == null
-        ? defaultAppSettingProps
-        : AppSettingProps.fromJson(json);
+    try {
+      return json == null
+          ? defaultAppSettingProps
+          : AppSettingProps.fromJson(json);
+    } catch (_) {
+      return defaultAppSettingProps;
+    }
   }
 }
 
