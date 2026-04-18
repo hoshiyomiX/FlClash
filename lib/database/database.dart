@@ -54,8 +54,8 @@ class Database extends _$Database {
         }
       },
       beforeOpen: (details) async {
-        final m = Migrator(this);
-        await _migrateRules(m);
+        // final m = Migrator(this);
+        // await _migrateRules(m);
         // await m.deleteTable('proxy_groups');
         // await m.createTable(proxyGroups);
       },
@@ -78,15 +78,15 @@ class Database extends _$Database {
     try {
       await customStatement('ALTER TABLE rules RENAME TO rules_old');
       await m.createTable(rules);
-      // final oldRows = await customSelect(
-      //   'SELECT id, value FROM rules_old',
-      // ).get();
-      // for (final row in oldRows) {
-      //   final id = row.read<int>('id');
-      //   final value = row.read<String>('value');
-      //   final parsed = Rule.parse(value, id: id);
-      //   await into(rules).insertOnConflictUpdate(parsed.toCompanion());
-      // }
+      final oldRows = await customSelect(
+        'SELECT id, value FROM rules_old',
+      ).get();
+      for (final row in oldRows) {
+        final id = row.read<int>('id');
+        final value = row.read<String>('value');
+        final parsed = Rule.parse(value, id: id);
+        await into(rules).insertOnConflictUpdate(parsed.toCompanion());
+      }
       await customStatement('DROP TABLE rules_old');
     } finally {
       await customStatement('PRAGMA foreign_keys = ON');
