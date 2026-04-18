@@ -22,10 +22,12 @@ class CustomRulesView extends ConsumerStatefulWidget {
 class _CustomRulesViewState extends ConsumerState<CustomRulesView>
     with UniqueKeyStateMixin {
   int get _profileId => widget.profileId;
+  late final ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
   }
 
   void _handleReorder(int oldIndex, int newIndex) {
@@ -125,6 +127,12 @@ class _CustomRulesViewState extends ConsumerState<CustomRulesView>
   }
 
   @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(context) {
     final rules = ref.watch(profileCustomRulesProvider(_profileId)).value ?? [];
     final selectedRules = ref.watch(itemsProvider(key));
@@ -153,49 +161,55 @@ class _CustomRulesViewState extends ConsumerState<CustomRulesView>
         ),
         SizedBox(width: 8),
       ],
-      body: ReorderableListView.builder(
-        buildDefaultDragHandles: false,
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        itemBuilder: (_, index) {
-          final rule = rules[index];
-          return _buildItem(
-            index: index,
-            total: rules.length,
-            isEditing: selectedRules.isNotEmpty,
-            isSelected: selectedRules.contains(rule.id),
-            rule: rule,
-            onSelected: () {
-              _handleSelected(rule.id);
-            },
-            onEdit: (rule) {
-              _handleAddOrUpdate(rule: rule);
-            },
-          );
-        },
-        itemExtent: ruleItemHeight,
-        itemCount: rules.length,
-        proxyDecorator: (child, index, animation) {
-          final rule = rules[index];
-          return commonProxyDecorator(
-            _buildItem(
-              index: index,
-              total: rules.length,
-              isEditing: selectedRules.isNotEmpty,
-              isSelected: selectedRules.contains(rule.id),
-              rule: rule,
-              onSelected: () {
-                _handleSelected(rule.id);
-              },
-              onEdit: (rule) {
-                _handleAddOrUpdate(rule: rule);
-              },
+      body: rules.isEmpty
+          ? NullStatus(label: '规则为空')
+          : CommonScrollBar(
+              controller: _scrollController,
+              child: ReorderableListView.builder(
+                scrollController: _scrollController,
+                buildDefaultDragHandles: false,
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                itemBuilder: (_, index) {
+                  final rule = rules[index];
+                  return _buildItem(
+                    index: index,
+                    total: rules.length,
+                    isEditing: selectedRules.isNotEmpty,
+                    isSelected: selectedRules.contains(rule.id),
+                    rule: rule,
+                    onSelected: () {
+                      _handleSelected(rule.id);
+                    },
+                    onEdit: (rule) {
+                      _handleAddOrUpdate(rule: rule);
+                    },
+                  );
+                },
+                itemExtent: ruleItemHeight,
+                itemCount: rules.length,
+                proxyDecorator: (child, index, animation) {
+                  final rule = rules[index];
+                  return commonProxyDecorator(
+                    _buildItem(
+                      index: index,
+                      total: rules.length,
+                      isEditing: selectedRules.isNotEmpty,
+                      isSelected: selectedRules.contains(rule.id),
+                      rule: rule,
+                      onSelected: () {
+                        _handleSelected(rule.id);
+                      },
+                      onEdit: (rule) {
+                        _handleAddOrUpdate(rule: rule);
+                      },
+                    ),
+                    index,
+                    animation,
+                  );
+                },
+                onReorder: _handleReorder,
+              ),
             ),
-            index,
-            animation,
-          );
-        },
-        onReorder: _handleReorder,
-      ),
     );
   }
 }
@@ -763,6 +777,7 @@ class _RuleTargetSelectedView extends ConsumerWidget {
                 itemCount: proxies.length,
               ),
             ),
+            SliverToBoxAdapter(child: SizedBox(height: 16)),
           ],
         ),
       ),
