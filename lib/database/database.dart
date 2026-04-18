@@ -67,30 +67,30 @@ class Database extends _$Database {
     final columnNames = tableInfo
         .map((row) => row.read<String>('name'))
         .toList();
+    print('column===> $columnNames');
     if (columnNames.isEmpty) {
       await m.createTable(rules);
       return;
-    } else if (!columnNames.contains('rule_action')) {
+    } else if (columnNames.contains('rule_action')) {
       return;
     }
     await customStatement('PRAGMA foreign_keys = OFF');
-    await customStatement('ALTER TABLE rules RENAME TO rules_old');
-    await m.createTable(rules);
-    final oldRows = await customSelect('SELECT id, value FROM rules_old').get();
-    for (final row in oldRows) {
-      final id = row.read<int>('id');
-      try {
-        final value = row.read<String>('value');
-        final parsed = Rule.parse(value, id: id);
-        await into(rules).insertOnConflictUpdate(parsed.toCompanion());
-      } catch (_) {
-        await into(
-          rules,
-        ).insertOnConflictUpdate(Rule.parse('', id: id).toCompanion());
-      }
+    try {
+      await customStatement('ALTER TABLE rules RENAME TO rules_old');
+      await m.createTable(rules);
+      // final oldRows = await customSelect(
+      //   'SELECT id, value FROM rules_old',
+      // ).get();
+      // for (final row in oldRows) {
+      //   final id = row.read<int>('id');
+      //   final value = row.read<String>('value');
+      //   final parsed = Rule.parse(value, id: id);
+      //   await into(rules).insertOnConflictUpdate(parsed.toCompanion());
+      // }
+      await customStatement('DROP TABLE rules_old');
+    } finally {
+      await customStatement('PRAGMA foreign_keys = ON');
     }
-    await customStatement('DROP TABLE rules_old');
-    await customStatement('PRAGMA foreign_keys = ON');
   }
 
   Future<void> _resetOrders() async {
