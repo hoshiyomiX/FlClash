@@ -51,7 +51,8 @@ class Database extends _$Database {
           await m.createTable(proxyGroups);
           await m.createTable(iconRecords);
           await _resetOrders();
-        } else if (from == 2) {
+          return;
+        } else if (from < 3) {
           await _migrateRules(m);
         }
       },
