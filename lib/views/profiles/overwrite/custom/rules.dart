@@ -168,7 +168,10 @@ class _CustomRulesViewState extends ConsumerState<CustomRulesView>
               child: ReorderableListView.builder(
                 scrollController: _scrollController,
                 buildDefaultDragHandles: false,
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ).copyWith(bottom: 24),
                 itemBuilder: (_, index) {
                   final rule = rules[index];
                   return _buildItem(

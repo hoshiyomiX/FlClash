@@ -145,7 +145,7 @@ class CustomProxyGroupsView extends ConsumerWidget {
           ? NullStatus(label: '策略组为空')
           : ReorderableListView.builder(
               buildDefaultDragHandles: false,
-              padding: EdgeInsets.symmetric(vertical: 16),
+              padding: EdgeInsets.symmetric(vertical: 12).copyWith(bottom: 24),
               itemBuilder: (context, index) {
                 final proxyGroup = proxyGroups[index];
                 return _buildItem(
