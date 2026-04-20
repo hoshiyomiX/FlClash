@@ -1,6 +1,5 @@
 import 'package:collection/collection.dart';
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart' hide FileInfo;
 import 'package:fl_clash/providers/providers.dart';
@@ -399,10 +398,13 @@ class _AddProxiesViewState extends ConsumerState<_AddProxiesView>
         .toList();
     final groupNames = proxyGroups.map((item) => item.name).toList();
     final proxyNames = proxies.map((item) => item.name).toList();
+    final height = ref.watch(
+      viewSizeProvider.select(
+        (state) => isBottomSheet ? state.height * 0.8 : double.maxFinite,
+      ),
+    );
     return SizedBox(
-      height: isBottomSheet
-          ? appController.viewSize.height * 0.80
-          : double.maxFinite,
+      height: height,
       child: AdaptiveSheetScaffold(
         sheetTransparentToolBar: true,
         title: '添加代理',

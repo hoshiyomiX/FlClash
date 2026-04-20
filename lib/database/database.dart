@@ -55,6 +55,7 @@ class Database extends _$Database {
       },
       beforeOpen: (details) async {
         // final m = Migrator(this);
+        // await m.createTable(iconRecords);
         // await _migrateRules(m);
         // await m.deleteTable('proxy_groups');
         // await m.createTable(proxyGroups);

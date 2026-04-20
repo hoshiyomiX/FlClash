@@ -363,9 +363,10 @@ class _EditProxyGroupViewState extends ConsumerState<_EditProxyGroupView> {
   }
 
   Future<void> _showIconEdit(String? icon) async {
-    final value = await globalState.showCommonDialog<String>(
-      child: IconEditDialog(icon),
-    );
+    final value = await Navigator.of(
+      context,
+    ).push<String>(PagedSheetRoute(builder: (context) => IconEditView(icon)));
+    print(value);
     if (value == null) {
       return;
     }

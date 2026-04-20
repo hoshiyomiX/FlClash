@@ -15,7 +15,7 @@ extension BuildContextExtension on BuildContext {
   void safeNestedPop<T extends Object?>([T? result]) {
     final nestedPop = SheetProvider.of(this)?.nestedNavigatorPop;
     if (nestedPop != null) {
-      return nestedPop();
+      return nestedPop(result);
     } else {
       return Navigator.of(this).pop(result);
     }

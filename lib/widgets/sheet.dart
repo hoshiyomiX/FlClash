@@ -114,6 +114,7 @@ class AdaptiveSheetScaffold extends StatefulWidget {
   final String title;
   final bool sheetTransparentToolBar;
   final List<IconButtonData> actions;
+  final VoidCallback? backAction;
 
   const AdaptiveSheetScaffold({
     super.key,
@@ -121,6 +122,7 @@ class AdaptiveSheetScaffold extends StatefulWidget {
     required this.title,
     this.sheetTransparentToolBar = false,
     this.actions = const [],
+    this.backAction,
   });
 
   @override
@@ -143,6 +145,14 @@ class _AdaptiveSheetScaffoldState extends State<AdaptiveSheetScaffold> {
       case TargetPlatform.iOS:
       case TargetPlatform.macOS:
         return Icons.arrow_back_ios_new_rounded;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant AdaptiveSheetScaffold oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.backAction != widget.backAction) {
+      setState(() {});
     }
   }
 
@@ -199,9 +209,11 @@ class _AdaptiveSheetScaffoldState extends State<AdaptiveSheetScaffold> {
               : buildIconButton(
                   IconButtonData(
                     icon: backIconData,
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
+                    onPressed:
+                        widget.backAction ??
+                        () {
+                          Navigator.of(context).pop();
+                        },
                   ),
                 ))
         : null;

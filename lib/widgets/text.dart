@@ -4,16 +4,44 @@ import 'package:flutter/material.dart';
 
 import '../state.dart';
 
-class TooltipText extends StatefulWidget {
+class TooltipText extends StatelessWidget {
   final Text text;
 
   const TooltipText({super.key, required this.text});
 
   @override
-  State<TooltipText> createState() => _TooltipTextState();
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxWidth = constraints.maxWidth;
+        final isOverflow = globalState.measure.computeTextIsOverflow(
+          text,
+          maxWidth: maxWidth,
+        );
+        if (isOverflow) {
+          return Tooltip(
+            triggerMode: TooltipTriggerMode.longPress,
+            preferBelow: false,
+            message: text.data,
+            child: text,
+          );
+        }
+        return text;
+      },
+    );
+  }
 }
 
-class _TooltipTextState extends State<TooltipText> {
+class TooltipTextV2 extends StatefulWidget {
+  final Text text;
+
+  const TooltipTextV2({super.key, required this.text});
+
+  @override
+  State<TooltipTextV2> createState() => _TooltipTextV2State();
+}
+
+class _TooltipTextV2State extends State<TooltipTextV2> {
   bool _isOverflow = false;
 
   @override
@@ -25,6 +53,9 @@ class _TooltipTextState extends State<TooltipText> {
   }
 
   void _checkOverflow() {
+    if (!mounted) {
+      return;
+    }
     final renderBox = context.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
 
