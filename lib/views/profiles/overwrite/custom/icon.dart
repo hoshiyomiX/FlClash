@@ -216,6 +216,7 @@ class _IconEditViewState extends ConsumerState<IconEditView>
                                         dimension: dimension,
                                         child: _state.value != null
                                             ? CommonCard(
+                                                type: CommonCardType.filled,
                                                 padding: EdgeInsets.all(6),
                                                 child: CommonImage(
                                                   isSvg:
@@ -235,6 +236,7 @@ class _IconEditViewState extends ConsumerState<IconEditView>
                         ),
                         Flexible(
                           child: CommonCard(
+                            type: CommonCardType.filled,
                             child: ListItem(
                               title: TextField(
                                 controller: _srcController,
