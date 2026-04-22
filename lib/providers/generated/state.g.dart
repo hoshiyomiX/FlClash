@@ -2423,7 +2423,7 @@ final class ScriptProvider
   }
 }
 
-String _$scriptHash() => r'b12a6dbe34e08cb1232afafa8b0b0f5363d28bc0';
+String _$scriptHash() => r'764a9f68c7b25b67b17fccefe7f0ab7e7f047fc2';
 
 final class ScriptFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<Script?>, int?> {
@@ -2572,7 +2572,7 @@ final class SetupStateProvider
   }
 }
 
-String _$setupStateHash() => r'3ded29d70c607f869b625dc808936887cbd6ecc1';
+String _$setupStateHash() => r'64485ae842d1ee6e665cff1b9742136f1844d477';
 
 final class SetupStateFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<SetupState>, int?> {

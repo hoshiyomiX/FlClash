@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -360,47 +359,49 @@ abstract class SetupState with _$SetupState {
     required int? profileLastUpdateDate,
     required OverwriteType overwriteType,
     required List<Rule> addedRules,
+    required List<Rule> customRules,
+    required List<ProxyGroup> customGroups,
     required Script? script,
     required bool overrideDns,
     required Dns dns,
   }) = _SetupState;
 }
 
-extension SetupStateExt on SetupState {
-  bool needSetup(SetupState? lastSetupState) {
-    if (lastSetupState == null) {
-      return false;
-    }
-    if (profileId != lastSetupState.profileId) {
-      return true;
-    }
-    if (profileLastUpdateDate != lastSetupState.profileLastUpdateDate) {
-      return true;
-    }
-    final scriptIsChange = script != lastSetupState.script;
-    if (overwriteType != lastSetupState.overwriteType) {
-      if (!ruleListEquality.equals(addedRules, lastSetupState.addedRules) ||
-          scriptIsChange) {
-        return true;
-      }
-    } else {
-      if (overwriteType == OverwriteType.script) {
-        if (scriptIsChange) {
-          return true;
-        }
-      }
-      if (overwriteType == OverwriteType.standard) {
-        if (!ruleListEquality.equals(addedRules, lastSetupState.addedRules)) {
-          return true;
-        }
-      }
-    }
-    if (overrideDns != lastSetupState.overrideDns) {
-      return true;
-    }
-    if (overrideDns == true && dns != lastSetupState.dns) {
-      return true;
-    }
-    return false;
-  }
-}
+// extension SetupStateExt on SetupState {
+//   bool needSetup(SetupState? lastSetupState) {
+//     if (lastSetupState == null) {
+//       return false;
+//     }
+//     if (profileId != lastSetupState.profileId) {
+//       return true;
+//     }
+//     if (profileLastUpdateDate != lastSetupState.profileLastUpdateDate) {
+//       return true;
+//     }
+//     final scriptIsChange = script != lastSetupState.script;
+//     if (overwriteType != lastSetupState.overwriteType) {
+//       if (!ruleListEquality.equals(addedRules, lastSetupState.addedRules) ||
+//           scriptIsChange) {
+//         return true;
+//       }
+//     } else {
+//       if (overwriteType == OverwriteType.script) {
+//         if (scriptIsChange) {
+//           return true;
+//         }
+//       }
+//       if (overwriteType == OverwriteType.standard) {
+//         if (!ruleListEquality.equals(addedRules, lastSetupState.addedRules)) {
+//           return true;
+//         }
+//       }
+//     }
+//     if (overrideDns != lastSetupState.overrideDns) {
+//       return true;
+//     }
+//     if (overrideDns == true && dns != lastSetupState.dns) {
+//       return true;
+//     }
+//     return false;
+//   }
+// }

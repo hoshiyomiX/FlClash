@@ -1,6 +1,7 @@
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/core/controller.dart';
+import 'package:fl_clash/database/database.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/state.dart';
@@ -669,7 +670,7 @@ OverwriteType overwriteType(Ref ref, int? profileId) {
 
 @riverpod
 Future<Script?> script(Ref ref, int? scriptId) async {
-  final script = await ref.watch(
+  final script = await ref.read(
     (scriptsProvider.future.select((state) async {
       final scripts = await state;
       return scripts.get(scriptId);
@@ -699,18 +700,35 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
   final profileLastUpdateDate = profile?.lastUpdateDate?.millisecondsSinceEpoch;
   final overwriteType = profile?.overwriteType ?? OverwriteType.standard;
   final dns = ref.watch(patchClashConfigProvider.select((state) => state.dns));
-  final script = await ref.watch(scriptProvider(scriptId).future);
   final overrideDns = ref.watch(overrideDnsProvider);
+  List<ProxyGroup> customGroups = [];
+  List<Rule> customRules = [];
   List<Rule> addedRules = [];
+  Script? script;
   if (profileId != null) {
-    final currentProfileId = ref.read(currentProfileIdProvider);
-    if (currentProfileId == profileId) {
-      addedRules = await ref.watch(addedRulesStreamProvider(profileId).future);
+    final reactive = profileId == ref.read(currentProfileIdProvider);
+    if (overwriteType == OverwriteType.standard) {
+      addedRules = reactive
+          ? await ref.watch(addedRulesStreamProvider(profileId).future)
+          : await database.rulesDao.allAddedRules(profileId).get();
+    } else if (overwriteType == OverwriteType.script) {
+      script = reactive
+          ? await ref.watch(scriptProvider(scriptId).future)
+          : (scriptId == null
+                ? null
+                : await database.scriptsDao.get(scriptId).getSingleOrNull());
     } else {
-      addedRules = await ref.read(addedRulesProvider(profileId).future);
+      customRules = reactive
+          ? await ref.watch(profileCustomRulesProvider(profileId).future)
+          : await database.rulesDao.allProfileCustomRules(profileId).get();
+      customGroups = reactive
+          ? await ref.watch(proxyGroupsProvider(profileId).future)
+          : await database.proxyGroupsDao.all(profileId).get();
     }
   }
   return SetupState(
+    customRules: customRules,
+    customGroups: customGroups,
     profileId: profileId,
     profileLastUpdateDate: profileLastUpdateDate,
     overwriteType: overwriteType,

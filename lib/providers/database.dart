@@ -20,11 +20,6 @@ Stream<List<Rule>> addedRulesStream(Ref ref, int profileId) {
 }
 
 @riverpod
-Future<List<Rule>> addedRules(Ref ref, int profileId) {
-  return database.rulesDao.allAddedRules(profileId).get();
-}
-
-@riverpod
 Stream<int> customRulesCount(Ref ref, int profileId) {
   return database.rulesDao.profileCustomRulesCount(profileId).watchSingle();
 }
@@ -91,7 +86,7 @@ class Profiles extends _$Profiles {
   }
 }
 
-@riverpod
+@Riverpod(keepAlive: true)
 class Scripts extends _$Scripts with AsyncNotifierMixin {
   @override
   Stream<List<Script>> build() {
@@ -409,15 +404,3 @@ class ProfileDisabledRuleIds extends _$ProfileDisabledRuleIds
     database.rulesDao.putDisabledLink(profileId, ruleId);
   }
 }
-
-// @Riverpod(name: 'iconRecordProvider')
-// class IconRecordsProvider extends _$IconRecordsProvider
-//     with AsyncNotifierMixin {
-//   @override
-//   List<IconRecord> get value => state.value ?? [];
-//
-//   @override
-//   Stream<List<IconRecord>> build(int profileId) {
-//     return database.iconRecordsDao.
-//   }
-// }

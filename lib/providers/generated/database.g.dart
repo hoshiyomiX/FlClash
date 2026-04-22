@@ -122,80 +122,6 @@ final class AddedRulesStreamFamily extends $Family
   String toString() => r'addedRulesStreamProvider';
 }
 
-@ProviderFor(addedRules)
-const addedRulesProvider = AddedRulesFamily._();
-
-final class AddedRulesProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<List<Rule>>,
-          List<Rule>,
-          FutureOr<List<Rule>>
-        >
-    with $FutureModifier<List<Rule>>, $FutureProvider<List<Rule>> {
-  const AddedRulesProvider._({
-    required AddedRulesFamily super.from,
-    required int super.argument,
-  }) : super(
-         retry: null,
-         name: r'addedRulesProvider',
-         isAutoDispose: true,
-         dependencies: null,
-         $allTransitiveDependencies: null,
-       );
-
-  @override
-  String debugGetCreateSourceHash() => _$addedRulesHash();
-
-  @override
-  String toString() {
-    return r'addedRulesProvider'
-        ''
-        '($argument)';
-  }
-
-  @$internal
-  @override
-  $FutureProviderElement<List<Rule>> $createElement($ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
-
-  @override
-  FutureOr<List<Rule>> create(Ref ref) {
-    final argument = this.argument as int;
-    return addedRules(ref, argument);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is AddedRulesProvider && other.argument == argument;
-  }
-
-  @override
-  int get hashCode {
-    return argument.hashCode;
-  }
-}
-
-String _$addedRulesHash() => r'fa2569f7781c93e00bd2017c956ff377e436667a';
-
-final class AddedRulesFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<List<Rule>>, int> {
-  const AddedRulesFamily._()
-    : super(
-        retry: null,
-        name: r'addedRulesProvider',
-        dependencies: null,
-        $allTransitiveDependencies: null,
-        isAutoDispose: true,
-      );
-
-  AddedRulesProvider call(int profileId) =>
-      AddedRulesProvider._(argument: profileId, from: this);
-
-  @override
-  String toString() => r'addedRulesProvider';
-}
-
 @ProviderFor(customRulesCount)
 const customRulesCountProvider = CustomRulesCountFamily._();
 
@@ -398,7 +324,7 @@ final class ScriptsProvider
         argument: null,
         retry: null,
         name: r'scriptsProvider',
-        isAutoDispose: true,
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
@@ -411,7 +337,7 @@ final class ScriptsProvider
   Scripts create() => Scripts();
 }
 
-String _$scriptsHash() => r'a784e9986eae864229a1035cc28ce4f3ec4644a0';
+String _$scriptsHash() => r'98a863294234784416db948db1f02852678ccecf';
 
 abstract class _$Scripts extends $StreamNotifier<List<Script>> {
   Stream<List<Script>> build();
