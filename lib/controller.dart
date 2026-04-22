@@ -674,10 +674,15 @@ extension SetupControllerExt on AppController {
     final configMap = await coreController.getConfig(profileId);
     String? scriptContent;
     final List<Rule> addedRules = [];
+    final List<ProxyGroup> proxyGroups = [];
+    final List<Rule> rules = [];
     if (setupState.overwriteType == OverwriteType.script) {
       scriptContent = await setupState.script?.content;
-    } else {
+    } else if (setupState.overwriteType == OverwriteType.script) {
       addedRules.addAll(setupState.addedRules);
+    } else {
+      proxyGroups.addAll(setupState.proxyGroups);
+      rules.addAll(setupState.rules);
     }
     final realPatchConfig = patchConfig.copyWith(
       tun: patchConfig.tun.getRealTun(routeMode),
@@ -689,6 +694,8 @@ extension SetupControllerExt on AppController {
     final directory = await appPath.profilesPath;
     final res = makeRealProfileTask(
       MakeRealProfileState(
+        rules: rules,
+        proxyGroups: proxyGroups,
         profilesPath: directory,
         profileId: profileId,
         rawConfig: rawConfig,

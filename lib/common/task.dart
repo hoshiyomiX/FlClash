@@ -219,46 +219,52 @@ Future<VM2<String, String>> _makeRealProfileTask(
     }
   }
   List<String> rules = [];
-  if (rawConfig['rules'] != null) {
-    rules = List<String>.from(rawConfig['rules']);
-  }
-  rawConfig.remove('rules');
-  if (addedRules.isNotEmpty) {
-    final hasMatchPlaceholder = addedRules.any(
-      (item) => item.ruleTarget?.toUpperCase() == 'MATCH',
-    );
-    String? replacementTarget;
+  if (data.rules.isEmpty) {
+    if (rawConfig['rules'] != null) {
+      rules = List<String>.from(rawConfig['rules']);
+    }
+    if (addedRules.isNotEmpty) {
+      final hasMatchPlaceholder = addedRules.any(
+        (item) => item.ruleTarget?.toUpperCase() == 'MATCH',
+      );
+      String? replacementTarget;
 
-    if (hasMatchPlaceholder) {
-      for (int i = rules.length - 1; i >= 0; i--) {
-        final parsed = Rule.parse(rules[i]);
-        if (parsed.ruleAction == RuleAction.MATCH) {
-          final target = parsed.ruleTarget;
-          if (target != null && target.isNotEmpty) {
-            replacementTarget = target;
-            break;
+      if (hasMatchPlaceholder) {
+        for (int i = rules.length - 1; i >= 0; i--) {
+          final parsed = Rule.parse(rules[i]);
+          if (parsed.ruleAction == RuleAction.MATCH) {
+            final target = parsed.ruleTarget;
+            if (target != null && target.isNotEmpty) {
+              replacementTarget = target;
+              break;
+            }
           }
         }
       }
-    }
-    final List<String> finalAddedRules;
+      final List<String> finalAddedRules;
 
-    if (replacementTarget?.isNotEmpty == true) {
-      finalAddedRules = [];
-      for (int i = 0; i < addedRules.length; i++) {
-        final parsed = addedRules[i];
-        if (parsed.ruleTarget?.toUpperCase() == 'MATCH') {
-          finalAddedRules.add(
-            parsed.copyWith(ruleTarget: replacementTarget).rawValue,
-          );
-        } else {
-          finalAddedRules.add(addedRules[i].rawValue);
+      if (replacementTarget?.isNotEmpty == true) {
+        finalAddedRules = [];
+        for (int i = 0; i < addedRules.length; i++) {
+          final parsed = addedRules[i];
+          if (parsed.ruleTarget?.toUpperCase() == 'MATCH') {
+            finalAddedRules.add(
+              parsed.copyWith(ruleTarget: replacementTarget).rawValue,
+            );
+          } else {
+            finalAddedRules.add(addedRules[i].rawValue);
+          }
         }
+      } else {
+        finalAddedRules = addedRules.map((e) => e.rawValue).toList();
       }
-    } else {
-      finalAddedRules = addedRules.map((e) => e.rawValue).toList();
+      rules = [...finalAddedRules, ...rules];
     }
-    rules = [...finalAddedRules, ...rules];
+  } else {
+    rules = data.rules.map((item) => item.rawValue).toList();
+  }
+  if (data.proxyGroups.isNotEmpty) {
+    rawConfig['proxy-groups'] = data.proxyGroups;
   }
   rawConfig['rules'] = rules;
   final yaml = await _encodeYaml(Map<String, dynamic>.from(rawConfig));

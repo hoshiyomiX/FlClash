@@ -9,7 +9,7 @@ part of '../clash_config.dart';
 _ProxyGroup _$ProxyGroupFromJson(Map<String, dynamic> json) => _ProxyGroup(
   id: Snowflake.buildId((json['id'] as num?)?.toInt()),
   name: json['name'] as String,
-  type: GroupType.parseProfileType(json['type'] as String),
+  type: $enumDecode(_$GroupTypeEnumMap, json['type']),
   proxies: (json['proxies'] as List<dynamic>?)
       ?.map((e) => e as String)
       .toList(),
@@ -58,11 +58,11 @@ Map<String, dynamic> _$ProxyGroupToJson(_ProxyGroup instance) =>
     };
 
 const _$GroupTypeEnumMap = {
-  GroupType.Selector: 'Selector',
-  GroupType.URLTest: 'URLTest',
-  GroupType.Fallback: 'Fallback',
-  GroupType.LoadBalance: 'LoadBalance',
-  GroupType.Relay: 'Relay',
+  GroupType.Selector: 'select',
+  GroupType.URLTest: 'url-test',
+  GroupType.Fallback: 'fallback',
+  GroupType.LoadBalance: 'load-balance',
+  GroupType.Relay: 'relay',
 };
 
 _Proxy _$ProxyFromJson(Map<String, dynamic> json) => _Proxy(

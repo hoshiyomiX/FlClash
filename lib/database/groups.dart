@@ -125,7 +125,7 @@ extension RawProxyGroupExt on RawProxyGroup {
     return ProxyGroup(
       id: id,
       name: name,
-      type: GroupType.parseProfileType(type),
+      type: GroupType.parse(type),
       proxies: proxies,
       use: use,
       url: url,

@@ -701,8 +701,8 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
   final overwriteType = profile?.overwriteType ?? OverwriteType.standard;
   final dns = ref.watch(patchClashConfigProvider.select((state) => state.dns));
   final overrideDns = ref.watch(overrideDnsProvider);
-  List<ProxyGroup> customGroups = [];
-  List<Rule> customRules = [];
+  List<ProxyGroup> proxyGroups = [];
+  List<Rule> rules = [];
   List<Rule> addedRules = [];
   Script? script;
   if (profileId != null) {
@@ -718,17 +718,17 @@ Future<SetupState> setupState(Ref ref, int? profileId) async {
                 ? null
                 : await database.scriptsDao.get(scriptId).getSingleOrNull());
     } else {
-      customRules = reactive
+      rules = reactive
           ? await ref.watch(profileCustomRulesProvider(profileId).future)
           : await database.rulesDao.allProfileCustomRules(profileId).get();
-      customGroups = reactive
+      proxyGroups = reactive
           ? await ref.watch(proxyGroupsProvider(profileId).future)
           : await database.proxyGroupsDao.all(profileId).get();
     }
   }
   return SetupState(
-    customRules: customRules,
-    customGroups: customGroups,
+    rules: rules,
+    proxyGroups: proxyGroups,
     profileId: profileId,
     profileLastUpdateDate: profileLastUpdateDate,
     overwriteType: overwriteType,

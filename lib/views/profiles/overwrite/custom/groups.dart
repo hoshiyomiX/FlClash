@@ -366,7 +366,6 @@ class _EditProxyGroupViewState extends ConsumerState<_EditProxyGroupView> {
     final value = await Navigator.of(
       context,
     ).push<String>(PagedSheetRoute(builder: (context) => IconEditView(icon)));
-    print(value);
     if (value == null) {
       return;
     }

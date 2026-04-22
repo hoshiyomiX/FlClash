@@ -37,26 +37,35 @@ const desktopPlatforms = [
   SupportPlatform.Windows,
 ];
 
-enum GroupType {
-  Selector,
-  URLTest,
-  Fallback,
-  LoadBalance,
-  Relay;
+enum GroupName { GLOBAL }
 
-  static GroupType parseProfileType(String type) {
+enum GroupType {
+  @JsonValue('select')
+  Selector('select'),
+  @JsonValue('url-test')
+  URLTest('url-test'),
+  @JsonValue('fallback')
+  Fallback('fallback'),
+  @JsonValue('load-balance')
+  LoadBalance('load-balance'),
+  @JsonValue('relay')
+  Relay('relay');
+
+  final String value;
+
+  const GroupType(this.value);
+
+  static GroupType parse(String type) {
     return switch (type.toLowerCase()) {
-      'url-test' => URLTest,
-      'select' => Selector,
+      'url-test' || 'urltest' => URLTest,
+      'select' || 'selector' => Selector,
       'fallback' => Fallback,
-      'load-balance' => LoadBalance,
+      'load-balance' || 'loadbalance' => LoadBalance,
       'relay' => Relay,
       String() => throw UnimplementedError(),
     };
   }
 }
-
-enum GroupName { GLOBAL, Proxy, Auto, Fallback }
 
 extension GroupTypeExtension on GroupType {
   static List<String> get valueList =>

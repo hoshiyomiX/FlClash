@@ -290,7 +290,7 @@ extension TrafficShowExt on TrafficShow {
 @freezed
 abstract class Group with _$Group {
   const factory Group({
-    required GroupType type,
+    @JsonKey(fromJson: GroupType.parse) required GroupType type,
     @Default([]) List<Proxy> all,
     String? now,
     bool? hidden,

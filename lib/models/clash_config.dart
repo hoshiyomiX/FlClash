@@ -104,7 +104,7 @@ abstract class ProxyGroup with _$ProxyGroup {
   const factory ProxyGroup({
     @JsonKey(fromJson: Snowflake.buildId) required int id,
     required String name,
-    @JsonKey(fromJson: GroupType.parseProfileType) required GroupType type,
+    required GroupType type,
     List<String>? proxies,
     List<String>? use,
     int? interval,
