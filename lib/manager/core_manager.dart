@@ -85,6 +85,15 @@ class _CoreContainerState extends ConsumerState<CoreManager>
     super.onRequest(trackerInfo);
   }
 
+  // IMPL-010: handle batched request notifications from Go core
+  @override
+  void onRequests(List<TrackerInfo> trackerInfos) async {
+    for (final trackerInfo in trackerInfos) {
+      ref.read(requestsProvider.notifier).addRequest(trackerInfo);
+    }
+    super.onRequests(trackerInfos);
+  }
+
   @override
   Future<void> onLoaded(String providerName) async {
     ref

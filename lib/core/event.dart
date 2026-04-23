@@ -11,6 +11,9 @@ abstract mixin class CoreEventListener {
 
   void onRequest(TrackerInfo connection) {}
 
+  // IMPL-009: handle batched request notifications
+  void onRequests(List<TrackerInfo> connections) {}
+
   void onLoaded(String providerName) {}
 
   void onCrash(String message) {}
@@ -31,6 +34,13 @@ class CoreEventManager {
             break;
           case CoreEventType.request:
             listener.onRequest(TrackerInfo.fromJson(event.data));
+            break;
+          // IMPL-009: handle batched request events from Go core
+          case CoreEventType.requests:
+            final List<dynamic> batch = event.data as List<dynamic>;
+            final trackerInfos =
+                batch.map((e) => TrackerInfo.fromJson(e)).toList();
+            listener.onRequests(trackerInfos);
             break;
           case CoreEventType.loaded:
             listener.onLoaded(event.data);

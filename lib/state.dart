@@ -32,6 +32,7 @@ class GlobalState {
   final navigatorKey = GlobalKey<NavigatorState>();
   Timer? timer;
   bool isPre = true;
+  bool _isPaused = false; // IMPL-001: track paused state for lifecycle management
   late final String coreSHA256;
   late final PackageInfo packageInfo;
   Function? updateCurrentDelayDebounce;
@@ -119,7 +120,8 @@ class GlobalState {
       return;
     }
     await executorUpdateTask();
-    timer = Timer(const Duration(seconds: 1), () async {
+    // IMPL-004: increased from 1s to 3s for battery optimization
+    timer = Timer(const Duration(seconds: 3), () async {
       startUpdateTasks();
     });
   }
@@ -135,6 +137,21 @@ class GlobalState {
     if (timer == null || timer?.isActive == false) return;
     timer?.cancel();
     timer = null;
+  }
+
+  // IMPL-001: Pause update tasks when app goes to background
+  void pauseUpdateTasks() {
+    _isPaused = true;
+    stopUpdateTasks();
+  }
+
+  // IMPL-001: Resume update tasks when app returns to foreground
+  void resumeUpdateTasks() {
+    if (!_isPaused) return;
+    _isPaused = false;
+    if (tasks.isNotEmpty && isStart) {
+      startUpdateTasks();
+    }
   }
 
   Future<void> handleStart([UpdateTasks? tasks]) async {

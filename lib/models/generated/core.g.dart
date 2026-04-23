@@ -162,6 +162,7 @@ const _$CoreEventTypeEnumMap = {
   CoreEventType.log: 'log',
   CoreEventType.delay: 'delay',
   CoreEventType.request: 'request',
+  CoreEventType.requests: 'requests',
   CoreEventType.loaded: 'loaded',
   CoreEventType.crash: 'crash',
 };

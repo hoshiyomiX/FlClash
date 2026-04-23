@@ -17,13 +17,15 @@ class ConnectionsView extends ConsumerStatefulWidget {
   ConsumerState<ConnectionsView> createState() => _ConnectionsViewState();
 }
 
-class _ConnectionsViewState extends ConsumerState<ConnectionsView> {
+class _ConnectionsViewState extends ConsumerState<ConnectionsView>
+    with WidgetsBindingObserver {
   final _connectionsStateNotifier = ValueNotifier<TrackerInfosState>(
     const TrackerInfosState(),
   );
   final ScrollController _scrollController = ScrollController();
 
   Timer? timer;
+  bool _isPaused = false; // IMPL-003: track paused state
 
   List<Widget> _buildActions() {
     return [
@@ -51,9 +53,10 @@ class _ConnectionsViewState extends ConsumerState<ConnectionsView> {
 
   Future<void> _updateConnectionsTask() async {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (mounted) {
+      if (mounted && !_isPaused) {
         await _updateConnections();
-        timer = Timer(Duration(seconds: 1), () async {
+        // IMPL-005: increased from 1s to 3s for battery optimization
+        timer = Timer(const Duration(seconds: 3), () async {
           _updateConnectionsTask();
         });
       }
@@ -63,6 +66,8 @@ class _ConnectionsViewState extends ConsumerState<ConnectionsView> {
   @override
   void initState() {
     super.initState();
+    // IMPL-003: register as lifecycle observer
+    WidgetsBinding.instance.addObserver(this);
     _updateConnectionsTask();
   }
 
@@ -79,11 +84,33 @@ class _ConnectionsViewState extends ConsumerState<ConnectionsView> {
 
   @override
   void dispose() {
+    // IMPL-003: remove lifecycle observer
+    WidgetsBinding.instance.removeObserver(this);
     timer?.cancel();
     _connectionsStateNotifier.dispose();
     _scrollController.dispose();
     timer = null;
     super.dispose();
+  }
+
+  // IMPL-003: handle app lifecycle changes for connections timer
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.paused:
+        _isPaused = true;
+        timer?.cancel();
+        timer = null;
+        break;
+      case AppLifecycleState.resumed:
+        if (_isPaused) {
+          _isPaused = false;
+          _updateConnectionsTask();
+        }
+        break;
+      default:
+        break;
+    }
   }
 
   @override

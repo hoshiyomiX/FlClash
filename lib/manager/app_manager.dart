@@ -65,14 +65,25 @@ class _AppStateManagerState extends ConsumerState<AppStateManager>
   @override
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
     commonPrint.log('$state');
-    if (state == AppLifecycleState.resumed) {
-      render?.resume();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        appController.tryCheckIp();
-        if (system.isAndroid) {
-          appController.tryStartCore();
-        }
-      });
+    switch (state) {
+      case AppLifecycleState.resumed:
+        render?.resume();
+        // IMPL-002: resume update tasks when returning to foreground
+        globalState.resumeUpdateTasks();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          appController.tryCheckIp();
+          if (system.isAndroid) {
+            appController.tryStartCore();
+          }
+        });
+        break;
+      case AppLifecycleState.paused:
+        // IMPL-002: pause update tasks when app goes to background
+        // This stops the 3-second polling timer to reduce battery drain
+        globalState.pauseUpdateTasks();
+        break;
+      default:
+        break;
     }
   }
 
