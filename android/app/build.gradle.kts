@@ -5,12 +5,8 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
-    // Firebase/Crashlytics are optional — only applied when google-services.json exists
-    val hasGoogleServices = file("google-services.json").exists()
-    if (hasGoogleServices) {
-        id("com.google.gms.google-services")
-        id("com.google.firebase.crashlytics")
-    }
+    id("com.google.gms.google-services") apply false
+    id("com.google.firebase.crashlytics") apply false
 }
 
 val localPropertiesFile = rootProject.file("local.properties")
@@ -27,6 +23,12 @@ val mKeyPassword: String? = localProperties.getProperty("keyPassword")
 val isRelease =
     mStoreFile.exists() && mStorePassword != null && mKeyAlias != null && mKeyPassword != null
 
+// Firebase/Crashlytics — only apply when google-services.json is present
+val hasGoogleServices = file("google-services.json").exists()
+if (hasGoogleServices) {
+    apply(plugin = "com.google.gms.google-services")
+    apply(plugin = "com.google.firebase.crashlytics")
+}
 
 android {
     namespace = "com.follow.clash"
@@ -108,7 +110,7 @@ dependencies {
         exclude(group = "com.google.guava", module = "guava")
     }
     // Firebase dependencies are only included when google-services.json is present
-    if (file("google-services.json").exists()) {
+    if (hasGoogleServices) {
         implementation(platform(libs.firebase.bom))
         implementation(libs.firebase.crashlytics.ndk)
         implementation(libs.firebase.analytics)
