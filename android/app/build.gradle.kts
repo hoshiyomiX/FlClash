@@ -5,8 +5,12 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
+    // Firebase/Crashlytics are optional — only applied when google-services.json exists
+    val hasGoogleServices = file("google-services.json").exists()
+    if (hasGoogleServices) {
+        id("com.google.gms.google-services")
+        id("com.google.firebase.crashlytics")
+    }
 }
 
 val localPropertiesFile = rootProject.file("local.properties")
@@ -103,7 +107,10 @@ dependencies {
     implementation(libs.smali.dexlib2) {
         exclude(group = "com.google.guava", module = "guava")
     }
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.crashlytics.ndk)
-    implementation(libs.firebase.analytics)
+    // Firebase dependencies are only included when google-services.json is present
+    if (file("google-services.json").exists()) {
+        implementation(platform(libs.firebase.bom))
+        implementation(libs.firebase.crashlytics.ndk)
+        implementation(libs.firebase.analytics)
+    }
 }

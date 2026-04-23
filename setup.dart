@@ -93,9 +93,9 @@ class Build {
     BuildItem(target: Target.android, arch: Arch.amd64, archName: 'x86_64'),
   ];
 
-  static String get appName => 'FlClash';
+  static String get appName => 'FlClash EX';
 
-  static String get coreName => 'FlClashCore';
+  static String get coreName => 'FlClashEXCore';
 
   static String get libName => 'libclash';
 
@@ -280,7 +280,7 @@ class Build {
     final targetPath = join(
       outDir,
       target.name,
-      'FlClashHelperService${target.executableExtensionName}',
+      'FlClashEXHelperService${target.executableExtensionName}',
     );
     await File(outPath).copy(targetPath);
   }

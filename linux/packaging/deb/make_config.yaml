@@ -1,8 +1,8 @@
-display_name: FlClash
-package_name: FlClash
+display_name: FlClash EX
+package_name: flclash-ex
 maintainer:
-  name: chen08209
-  email: chen08209@gmail.com
+  name: hoshiyomiX
+  email: hoshiyomiX@users.noreply.github.com
 
 priority: optional
 section: x11
@@ -15,12 +15,13 @@ dependencies:
   - libkeybinder-3.0-dev
 
 keywords:
+  - FlClash EX
   - FlClash
   - Clash
   - ClashMeta
   - Proxy
 
-generic_name: FlClash
+generic_name: FlClash EX
 
 categories:
   - Network

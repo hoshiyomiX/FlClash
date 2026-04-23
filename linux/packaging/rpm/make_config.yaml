@@ -1,7 +1,7 @@
-display_name: FlClash
+display_name: FlClash EX
 
-packager: chen08209
-packagerEmail: chen08209@gmail.com
+packager: hoshiyomiX
+packagerEmail: hoshiyomiX@users.noreply.github.com
 license: Other
 
 priority: optional
@@ -11,12 +11,13 @@ essential: false
 icon: ./assets/images/icon.png
 
 keywords:
+  - FlClash EX
   - FlClash
   - Clash
   - ClashMeta
   - Proxy
 
-generic_name: FlClash
+generic_name: FlClash EX
 
 group: Applications/Internet
 

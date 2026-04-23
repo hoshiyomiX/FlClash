@@ -10,7 +10,7 @@ import kotlinx.coroutines.Dispatchers
 
 object GlobalState : CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
-    const val NOTIFICATION_CHANNEL = "FlClash"
+    const val NOTIFICATION_CHANNEL = "FlClash EX"
 
     const val NOTIFICATION_ID = 1
 
@@ -28,7 +28,7 @@ object GlobalState : CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
 
     fun log(text: String) {
-        Log.d("[FlClash]", text)
+        Log.d("[FlClashEX]", text)
     }
 
     fun init(application: Application) {
