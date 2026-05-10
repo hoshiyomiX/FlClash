@@ -10,7 +10,7 @@ android {
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 21
+        minSdk = libs.versions.minSdk.get().toInt()
         consumerProguardFiles("consumer-rules.pro")
     }
 
@@ -39,7 +39,11 @@ kotlin {
 dependencies {
     implementation(libs.androidx.core)
     implementation(libs.gson)
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.crashlytics.ndk)
-    implementation(libs.firebase.analytics)
+    // Firebase dependencies are only included when google-services.json is present
+    val hasGoogleServices = file("${project.projectDir.parent}/app/google-services.json").exists()
+    if (hasGoogleServices) {
+        implementation(platform(libs.firebase.bom))
+        implementation(libs.firebase.crashlytics.ndk)
+        implementation(libs.firebase.analytics)
+    }
 }
