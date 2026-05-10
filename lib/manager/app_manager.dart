@@ -121,7 +121,7 @@ class AppEnvManager extends StatelessWidget {
     }
     if (globalState.isPre) {
       return Banner(
-        message: 'PRE',
+        message: 'EX',
         location: BannerLocation.topEnd,
         child: child,
       );
