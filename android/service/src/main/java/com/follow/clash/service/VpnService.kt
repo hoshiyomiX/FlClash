@@ -74,9 +74,9 @@ class VpnService : SystemVpnService(), IBaseService,
             return ""
         }
         if (uidPageNameMap.get(nextUid) == null) {
-            uidPageNameMap[nextUid] = this.packageManager?.getPackagesForUid(nextUid)?.first() ?: ""
+            uidPageNameMap.put(nextUid, this.packageManager?.getPackagesForUid(nextUid)?.first() ?: "")
         }
-        return uidPageNameMap[nextUid] ?: ""
+        return uidPageNameMap.get(nextUid) ?: ""
     }
 
     val VpnOptions.address
