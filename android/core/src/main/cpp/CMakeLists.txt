@@ -9,7 +9,7 @@ message("CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}")
 
 if (NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
-    add_compile_options(-O3 -flto -g0 -fno-exceptions -fno-rtti)
+    add_compile_options(-O3 -flto -g0 -fno-exceptions -fno-rtti -fdata-sections -ffunction-sections)
     add_link_options(-flto -Wl,--gc-sections,--strip-all)
 endif ()
 

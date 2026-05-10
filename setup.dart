@@ -216,6 +216,7 @@ class Build {
       final execLines = [
         'go',
         'build',
+        '-trimpath',
         '-ldflags=-w -s',
         '-tags=$tags',
         if (isLib) '-buildmode=c-shared',
@@ -418,10 +419,17 @@ class BuildCommand extends Command {
     required String env,
   }) async {
     await Build.getDistributor();
+    final extraFlutterArgs = [
+      'tree-shake-icons',
+      if (env == 'stable') ...[
+        'obfuscate',
+        'split-debug-info=build/debug-info',
+      ],
+    ].join(',');
     await Build.exec(
       name: name,
       Build.getExecutable(
-        'flutter_distributor package --skip-clean --platform ${target.name} --targets $targets --flutter-build-args=verbose,dart-define-from-file=env.json$args',
+        'flutter_distributor package --skip-clean --platform ${target.name} --targets $targets --flutter-build-args=verbose,dart-define-from-file=env.json,$extraFlutterArgs$args',
       ),
     );
   }

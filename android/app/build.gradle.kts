@@ -70,12 +70,14 @@ android {
     buildTypes {
         debug {
             isMinifyEnabled = false
+            isDebuggable = true
             applicationIdSuffix = ".dev"
         }
 
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            isDebuggable = false
             if (isRelease) {
                 signingConfig = signingConfigs.getByName("release")
             } else {
