@@ -11,6 +11,11 @@ import android.net.NetworkRequest
 import android.os.Build
 import androidx.core.content.getSystemService
 import com.follow.clash.core.Core
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
@@ -29,6 +34,9 @@ class NetworkObserveModule(private val service: Service) : Module() {
         service.getSystemService<ConnectivityManager>()
     }
     private var preDnsList = listOf<String>()
+    // S-14: Debounce job for onUpdateNetwork to prevent rapid-fire IPC during network handoff
+    private var updateNetworkJob: Job? = null
+    private val updateNetworkScope = CoroutineScope(Dispatchers.Default)
 
     private val request = NetworkRequest.Builder().apply {
         addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
@@ -42,27 +50,27 @@ class NetworkObserveModule(private val service: Service) : Module() {
     private val callback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             networkInfos[network] = NetworkInfo()
-            onUpdateNetwork()
+            scheduleUpdateNetwork()
             super.onAvailable(network)
         }
 
         override fun onLosing(network: Network, maxMsToLive: Int) {
             networkInfos[network]?.losingMs = System.currentTimeMillis() + maxMsToLive
-            onUpdateNetwork()
+            scheduleUpdateNetwork()
             setUnderlyingNetworks(network)
             super.onLosing(network, maxMsToLive)
         }
 
         override fun onLost(network: Network) {
             networkInfos.remove(network)
-            onUpdateNetwork()
+            scheduleUpdateNetwork()
             setUnderlyingNetworks(network)
             super.onLost(network)
         }
 
         override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
             networkInfos[network]?.dnsList = linkProperties.dnsServers
-            onUpdateNetwork()
+            scheduleUpdateNetwork()
             setUnderlyingNetworks(network)
             super.onLinkPropertiesChanged(network, linkProperties)
         }
@@ -95,7 +103,17 @@ class NetworkObserveModule(private val service: Service) : Module() {
         } + (if (entry.value.isAvailable()) 0 else 10)
     }
 
-    fun onUpdateNetwork() {
+    // S-14: Debounced version of onUpdateNetwork (100ms) to prevent IPC storm
+    // during rapid network handoff events (e.g., switching between Wi-Fi and cellular)
+    fun scheduleUpdateNetwork() {
+        updateNetworkJob?.cancel()
+        updateNetworkJob = updateNetworkScope.launch {
+            delay(100)
+            onUpdateNetwork()
+        }
+    }
+
+    private fun onUpdateNetwork() {
         val dnsList = (networkInfos.asSequence().minByOrNull { networkToInt(it) }?.value?.dnsList
             ?: emptyList()).map { x -> x.asSocketAddressText(53) }
         if (dnsList == preDnsList) {
@@ -105,10 +123,17 @@ class NetworkObserveModule(private val service: Service) : Module() {
         Core.updateDNS(dnsList.toSet().joinToString(","))
     }
 
+    // S-12: Enable setUnderlyingNetworks() for all API levels to allow the system
+    // to optimize radio usage (Wi-Fi vs cellular), reducing battery drain.
+    // Previously commented out and limited to API 22-28.
     fun setUnderlyingNetworks(network: Network) {
-//        if (service is VpnService && Build.VERSION.SDK_INT in 22..28) {
-//            service.setUnderlyingNetworks(arrayOf(network))
-//        }
+        if (service is android.net.VpnService) {
+            try {
+                service.setUnderlyingNetworks(arrayOf(network))
+            } catch (_: Exception) {
+                // Ignore on devices that don't support this
+            }
+        }
     }
 
     override fun onUninstall() {

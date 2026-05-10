@@ -53,7 +53,7 @@ func startRequestBatchFlusher() {
         }
         requestBuf = make([]statistic.Tracker, 0)
         requestDone = make(chan struct{})
-        requestFlusher = time.NewTicker(500 * time.Millisecond)
+        requestFlusher = time.NewTicker(2000 * time.Millisecond)
         requestBufMu.Unlock()
 
         go func() {
@@ -645,7 +645,7 @@ func init() {
                 })
         }
         // IMPL-007: buffer requests instead of sending individually;
-        // the batch flusher runs every 500ms to send accumulated trackers
+        // S-04: the batch flusher runs every 2000ms to send accumulated trackers
         // as a single CGO crossing, dramatically reducing per-connection overhead
         statistic.DefaultRequestNotify = func(c statistic.Tracker) {
                 bufferRequest(c)

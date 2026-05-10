@@ -1,29 +1,19 @@
 package com.follow.clash.service.modules
 
 import android.app.Service
-import android.content.Intent
 import android.os.PowerManager
 import androidx.core.content.getSystemService
-import com.follow.clash.common.receiveBroadcastFlow
 import com.follow.clash.core.Core
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
+// S-11: Now uses shared ScreenState singleton instead of registering its own BroadcastReceiver.
+// This eliminates the duplicate wake-up per screen event.
 
 class SuspendModule(private val service: Service) : Module() {
     private val scope = CoroutineScope(Dispatchers.Default)
-
-    private fun isScreenOn(): Boolean {
-        val pm = service.getSystemService<PowerManager>()
-        return when (pm != null) {
-            true -> pm.isInteractive
-            false -> true
-        }
-    }
 
     val isDeviceIdleMode: Boolean
         get() {
@@ -40,18 +30,10 @@ class SuspendModule(private val service: Service) : Module() {
 
     override fun onInstall() {
         scope.launch {
-            val screenFlow = service.receiveBroadcastFlow {
-                addAction(Intent.ACTION_SCREEN_ON)
-                addAction(Intent.ACTION_SCREEN_OFF)
-            }.map { intent ->
-                intent.action == Intent.ACTION_SCREEN_ON
-            }.onStart {
-                emit(isScreenOn())
+            // S-11: Use shared ScreenState instead of separate BroadcastReceiver
+            ScreenState.isScreenOn.collect { screenOn ->
+                onUpdate(screenOn)
             }
-
-            screenFlow.collect {
-                    onUpdate(it)
-                }
         }
     }
 

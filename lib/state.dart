@@ -120,8 +120,8 @@ class GlobalState {
       return;
     }
     await executorUpdateTask();
-    // IMPL-004: increased from 1s to 3s for battery optimization
-    timer = Timer(const Duration(seconds: 3), () async {
+    // S-006: increased from 3s to 5s for battery optimization
+    timer = Timer(const Duration(seconds: 5), () async {
       startUpdateTasks();
     });
   }

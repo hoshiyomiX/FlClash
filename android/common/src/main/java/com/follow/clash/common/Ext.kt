@@ -146,9 +146,12 @@ fun Context.receiveBroadcastFlow(
 }
 
 
+// S-16: Changed default flag from BIND_AUTO_CREATE to BIND_ABOVE_CLIENT.
+// BIND_AUTO_CREATE keeps the service process alive even when no work is being done,
+// wasting battery. BIND_ABOVE_CLIENT only binds when the client is active.
 inline fun <reified T : IBinder> Context.bindServiceFlow(
     intent: Intent,
-    flags: Int = Context.BIND_AUTO_CREATE,
+    flags: Int = Context.BIND_ABOVE_CLIENT,
     maxRetries: Int = 10,
     retryDelayMillis: Long = 200L
 ): Flow<Pair<IBinder?, String>> = callbackFlow {

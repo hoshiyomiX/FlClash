@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -38,8 +39,11 @@ fun CoroutineScope.moduleLoader(block: suspend ModuleLoaderScope.() -> Unit): Mo
             }
         }
 
+        // S-13: Make cancel() synchronous to prevent race condition with stopSelf().
+        // Previously, cancel() launched an async coroutine that could race with service
+        // destruction. Now blocks until all modules are properly uninstalled.
         override fun cancel() {
-            launch(Dispatchers.IO) {
+            runBlocking {
                 job?.cancel()
                 mutex.withLock {
                     modules.asReversed().forEach { it.uninstall() }

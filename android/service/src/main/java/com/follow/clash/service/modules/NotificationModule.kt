@@ -5,14 +5,12 @@ import android.app.Service
 import android.app.Service.STOP_FOREGROUND_REMOVE
 import android.content.Intent
 import android.os.Build
-import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
 import com.follow.clash.common.Components
 import com.follow.clash.common.GlobalState
 import com.follow.clash.common.QuickAction
 import com.follow.clash.common.quickIntent
-import com.follow.clash.common.receiveBroadcastFlow
 import com.follow.clash.common.startForeground
 import com.follow.clash.common.tickerFlow
 import com.follow.clash.common.toPendingIntent
@@ -24,11 +22,8 @@ import com.follow.clash.service.models.getSpeedTrafficText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 data class ExtendedNotificationParams(
@@ -46,40 +41,31 @@ val NotificationParams.extended: ExtendedNotificationParams
 class NotificationModule(private val service: Service) : Module() {
     private val scope = CoroutineScope(Dispatchers.Default)
 
+    // S-02: track whether startForeground has been called at least once
+    private var isFirstUpdate = true
+
     override fun onInstall() {
+        // S-11: Register shared screen state (single BroadcastReceiver for all modules)
+        ScreenState.register(service)
         scope.launch {
-            val screenFlow = service.receiveBroadcastFlow {
-                addAction(Intent.ACTION_SCREEN_ON)
-                addAction(Intent.ACTION_SCREEN_OFF)
-            }.map { intent ->
-                intent.action == Intent.ACTION_SCREEN_ON
-            }.onStart {
-                emit(isScreenOn())
-            }
-
-            combine(
-                tickerFlow(1000, 0), State.notificationParamsFlow, screenFlow
-            ) { _, params, screenOn ->
-                params?.extended to screenOn
-            }.filter { (params, screenOn) -> params != null && screenOn }
-                .distinctUntilChanged { old, new -> old.first == new.first && old.second == new.second }
-                .collect { (params, _) ->
-                    update(params!!)
-                }
-
-            State.notificationParamsFlow.value?.let {
-                update(it.extended)
-            } ?: run {
+            // Initial notification
+            val initialParams = State.notificationParamsFlow.value?.extended
+            if (initialParams != null) {
+                update(initialParams)
+            } else {
                 update(NotificationParams().extended)
             }
-        }
-    }
 
-    private fun isScreenOn(): Boolean {
-        val pm = service.getSystemService<PowerManager>()
-        return when (pm != null) {
-            true -> pm.isInteractive
-            false -> true
+            // S-02 + S-11: Only run ticker when screen is on using shared ScreenState
+            // When screen is off, flowOf(empty) emits nothing (no JNI calls)
+            ScreenState.isScreenOn.flatMapLatest { screenOn ->
+                if (screenOn) tickerFlow(1000, 0) else flowOf()
+            }.collect { _ ->
+                val params = State.notificationParamsFlow.value?.extended
+                if (params != null) {
+                    update(params)
+                }
+            }
         }
     }
 
@@ -105,15 +91,23 @@ class NotificationModule(private val service: Service) : Module() {
     }
 
     private fun update(params: ExtendedNotificationParams) {
-        service.startForeground(
-            with(notificationBuilder) {
-                setContentTitle(params.title)
-                setContentText(params.contentText)
-                clearActions()
-                addAction(
-                    0, params.stopText, QuickAction.STOP.quickIntent.toPendingIntent
-                ).build()
-            })
+        val notification = with(notificationBuilder) {
+            setContentTitle(params.title)
+            setContentText(params.contentText)
+            clearActions()
+            addAction(
+                0, params.stopText, QuickAction.STOP.quickIntent.toPendingIntent
+            ).build()
+        }
+        // S-03: call startForeground only once, then use notify() for updates
+        // This reduces 86,400 IPC calls/day to just 1
+        if (isFirstUpdate) {
+            service.startForeground(notification)
+            isFirstUpdate = false
+        } else {
+            val manager = service.getSystemService<android.app.NotificationManager>()
+            manager?.notify(GlobalState.NOTIFICATION_ID, notification)
+        }
     }
 
     override fun onUninstall() {
@@ -122,6 +116,8 @@ class NotificationModule(private val service: Service) : Module() {
         } else {
             service.stopForeground(true)
         }
+        // S-11: Unregister shared screen state
+        ScreenState.unregister(service)
         scope.cancel()
     }
 }

@@ -62,7 +62,11 @@ class ApplicationState extends ConsumerState<Application> {
 
   void _autoUpdateProfilesTask() {
     _autoUpdateProfilesTaskTimer = Timer(const Duration(minutes: 20), () async {
-      await appController.autoUpdateProfiles();
+      // S-15: Only run auto-update when VPN service is active,
+      // avoiding unnecessary HTTP calls when VPN is stopped
+      if (globalState.isStart) {
+        await appController.autoUpdateProfiles();
+      }
       _autoUpdateProfilesTask();
     });
   }

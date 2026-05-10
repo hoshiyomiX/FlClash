@@ -9,6 +9,7 @@ import android.os.IBinder
 import android.os.Parcel
 import android.os.RemoteException
 import android.util.Log
+import androidx.collection.LruCache
 import androidx.core.content.getSystemService
 import com.follow.clash.common.AccessControlMode
 import com.follow.clash.common.GlobalState
@@ -23,11 +24,13 @@ import com.follow.clash.service.modules.SuspendModule
 import com.follow.clash.service.modules.moduleLoader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import java.net.InetSocketAddress
 import android.net.VpnService as SystemVpnService
 
 class VpnService : SystemVpnService(), IBaseService,
-    CoroutineScope by CoroutineScope(Dispatchers.Default) {
+    CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default) {
 
     private val self: VpnService
         get() = this
@@ -44,6 +47,8 @@ class VpnService : SystemVpnService(), IBaseService,
     }
 
     override fun onDestroy() {
+        // S-07: Cancel coroutine scope to free resources on service destroy
+        cancel()
         handleDestroy()
         super.onDestroy()
     }
@@ -51,7 +56,8 @@ class VpnService : SystemVpnService(), IBaseService,
     private val connectivity by lazy {
         getSystemService<ConnectivityManager>()
     }
-    private val uidPageNameMap = mutableMapOf<Int, String>()
+    // S-08: LRU cache (200 entries) replaces unbounded map to prevent memory leak
+    private val uidPageNameMap = LruCache<Int, String>(200)
 
     private fun resolverProcess(
         protocol: Int,
@@ -186,7 +192,7 @@ class VpnService : SystemVpnService(), IBaseService,
             if (options.ipv6) {
                 addDnsServer(DNS6)
             }
-            setMtu(9000)
+            setMtu(1420)
             options.accessControlProps.let { accessControl ->
                 if (accessControl.enable) {
                     when (accessControl.mode) {

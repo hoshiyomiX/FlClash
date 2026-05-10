@@ -11,9 +11,11 @@ import com.follow.clash.service.modules.SuspendModule
 import com.follow.clash.service.modules.moduleLoader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 
 class CommonService : Service(), IBaseService,
-    CoroutineScope by CoroutineScope(Dispatchers.Default) {
+    CoroutineScope by CoroutineScope(SupervisorJob() + Dispatchers.Default) {
 
     private val self: CommonService
         get() = this
@@ -30,6 +32,8 @@ class CommonService : Service(), IBaseService,
     }
 
     override fun onDestroy() {
+        // S-07: Cancel coroutine scope to free resources on service destroy
+        cancel()
         handleDestroy()
         super.onDestroy()
     }
