@@ -73,7 +73,7 @@ class VpnService : SystemVpnService(), IBaseService,
         if (nextUid == -1) {
             return ""
         }
-        if (!uidPageNameMap.containsKey(nextUid)) {
+        if (uidPageNameMap.get(nextUid) == null) {
             uidPageNameMap[nextUid] = this.packageManager?.getPackagesForUid(nextUid)?.first() ?: ""
         }
         return uidPageNameMap[nextUid] ?: ""
