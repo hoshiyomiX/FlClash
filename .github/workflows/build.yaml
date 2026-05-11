@@ -66,12 +66,44 @@ jobs:
       - name: Setup
         run: dart setup.dart ${{ matrix.platform }} ${{ matrix.arch && format('--arch {0}', matrix.arch) }} ${{ env.IS_STABLE == 'true' && '--env stable' || '' }}
 
+      - name: Verify R8 minification
+        if: startsWith(matrix.platform,'android')
+        run: |
+          MAPPING_DIR="build/app/outputs/mapping/release"
+          if [ -f "$MAPPING_DIR/mapping.txt" ]; then
+            echo "✅ R8 mapping.txt found — minification was applied"
+            LINES=$(wc -l < "$MAPPING_DIR/mapping.txt")
+            echo "   mapping.txt entries: $LINES"
+            SEEDS=$(wc -l < "$MAPPING_DIR/seeds.txt" 2>/dev/null || echo 0)
+            echo "   seeds.txt entries: $SEEDS"
+          else
+            echo "❌ R8 mapping.txt NOT found — minification may not have run"
+            exit 1
+          fi
+          APK_DIR="build/app/outputs/flutter-apk"
+          if ls $APK_DIR/*.apk 1>/dev/null 2>&1; then
+            echo "✅ APK artifacts found:"
+            ls -lh $APK_DIR/*.apk
+          else
+            echo "⚠️  No APKs in flutter-apk, checking apk output..."
+            find build/app/outputs -name "*.apk" -exec ls -lh {} \;
+          fi
+
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: artifact-${{ matrix.platform }}${{ matrix.arch && format('-{0}', matrix.arch) }}
           path: ./dist
           overwrite: true
+
+      - name: Upload R8 mapping
+        if: startsWith(matrix.platform,'android')
+        uses: actions/upload-artifact@v4
+        with:
+          name: r8-mapping-${{ matrix.platform }}
+          path: build/app/outputs/mapping/release/
+          retention-days: 90
+          if-no-files-found: warn
 
   release:
     permissions: write-all
