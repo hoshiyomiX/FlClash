@@ -129,6 +129,9 @@ class NetworkObserveModule(private val service: Service) : Module() {
         if (dnsList == preDnsList) {
             // F-03: Even if DNS list unchanged, underlying networks may have changed
             // (e.g., Wi-Fi lost → cellular only). Still update underlying networks.
+            // VPN-FIX-01: Skip setUnderlyingNetworks when no networks discovered yet
+            // to avoid passing empty array (which tells Android the VPN has no
+            // connectivity, causing immediate disconnection).
             setUnderlyingNetworks(sorted)
             return
         }
@@ -142,6 +145,13 @@ class NetworkObserveModule(private val service: Service) : Module() {
     // optimize radio usage correctly. Previously only passed the single triggering
     // network (which could be a dying/lost network), causing the system to hold
     // the wrong radio awake during network handoffs.
+    //
+    // VPN-FIX-02: setUnderlyingNetworks(emptyArray) tells Android the VPN has NO
+    // underlying networks, causing Android to mark the VPN as having no internet
+    // connectivity and immediately tearing it down. We must pass null instead,
+    // which tells Android to determine underlying networks automatically.
+    // Also skip the call entirely when no networks have been discovered yet,
+    // since the network callback hasn't fired at that point.
     private fun setUnderlyingNetworks(sortedEntries: List<Map.Entry<Network, NetworkInfo>>) {
         if (service is android.net.VpnService) {
             val availableNetworks = sortedEntries
@@ -149,7 +159,10 @@ class NetworkObserveModule(private val service: Service) : Module() {
                 .map { it.key }
                 .toTypedArray()
             try {
-                service.setUnderlyingNetworks(availableNetworks)
+                // VPN-FIX-02: Pass null (not empty array) when no networks available.
+                // null = "system decides" → VPN stays up
+                // emptyArray = "no underlying networks" → VPN marked as no internet → killed
+                service.setUnderlyingNetworks(availableNetworks.ifEmpty { null })
             } catch (_: Exception) {
                 // Ignore on devices that don't support this
             }
