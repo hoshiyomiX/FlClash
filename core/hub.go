@@ -157,6 +157,8 @@ func handleForceGC() {
 }
 
 func handleShutdown() bool {
+        // S-17: stop log subscriber goroutine to prevent goroutine leak on restart
+        handleStopLog()
         // IMPL-007: stop the request batch flusher on shutdown
         stopRequestBatchFlusher()
         stopListeners()
@@ -505,7 +507,13 @@ func handleSideLoadExternalProvider(providerName string, data []byte, fn func(va
 func handleSuspend(suspended bool) bool {
         if suspended {
                 tunnel.OnSuspend()
+                // F-07: Stop the request batch flusher when suspended (screen off + device idle).
+                // The flusher ticks every 2s and wakes the goroutine scheduler unnecessarily.
+                // When suspended, no UI is listening for request updates anyway.
+                stopRequestBatchFlusher()
         } else {
+                // F-07: Restart the request batch flusher when resumed (screen on).
+                startRequestBatchFlusher()
                 tunnel.OnRunning()
         }
         return true

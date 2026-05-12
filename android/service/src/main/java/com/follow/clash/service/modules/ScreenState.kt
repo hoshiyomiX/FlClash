@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.PowerManager
 import androidx.core.content.getSystemService
+import com.follow.clash.common.registerReceiverCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,7 +38,9 @@ object ScreenState {
             addAction(Intent.ACTION_SCREEN_ON)
             addAction(Intent.ACTION_SCREEN_OFF)
         }
-        service.registerReceiver(receiver, filter)
+        // F-04: Use registerReceiverCompat to set RECEIVER_NOT_EXPORTED on API 33+,
+        // preventing other apps from sending fake screen on/off intents to this receiver.
+        service.registerReceiverCompat(receiver!!, filter)
     }
 
     fun unregister(service: Service) {

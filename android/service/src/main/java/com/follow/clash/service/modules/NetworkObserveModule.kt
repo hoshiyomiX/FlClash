@@ -14,6 +14,7 @@ import com.follow.clash.core.Core
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.net.Inet4Address
@@ -56,22 +57,29 @@ class NetworkObserveModule(private val service: Service) : Module() {
 
         override fun onLosing(network: Network, maxMsToLive: Int) {
             networkInfos[network]?.losingMs = System.currentTimeMillis() + maxMsToLive
+            // F-03: Removed setUnderlyingNetworks(network) — passing a dying network
+            // misinforms the system about which radio to keep active, wasting battery.
+            // setUnderlyingNetworks is now called only from onUpdateNetwork() after
+            // the debounce settles, with all available networks.
             scheduleUpdateNetwork()
-            setUnderlyingNetworks(network)
             super.onLosing(network, maxMsToLive)
         }
 
         override fun onLost(network: Network) {
             networkInfos.remove(network)
+            // F-03: Removed setUnderlyingNetworks(network) — passing a lost/dead network
+            // causes the system to hold the wrong radio awake (e.g., Wi-Fi after switch
+            // to cellular). The debounced onUpdateNetwork() handles this correctly.
             scheduleUpdateNetwork()
-            setUnderlyingNetworks(network)
             super.onLost(network)
         }
 
         override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
             networkInfos[network]?.dnsList = linkProperties.dnsServers
+            // F-03: Removed setUnderlyingNetworks(network) — calling it per-callback
+            // with only the triggering network is redundant and incomplete. The
+            // debounced onUpdateNetwork() now handles this with ALL available networks.
             scheduleUpdateNetwork()
-            setUnderlyingNetworks(network)
             super.onLinkPropertiesChanged(network, linkProperties)
         }
     }
@@ -114,22 +122,34 @@ class NetworkObserveModule(private val service: Service) : Module() {
     }
 
     private fun onUpdateNetwork() {
-        val dnsList = (networkInfos.asSequence().minByOrNull { networkToInt(it) }?.value?.dnsList
+        val sorted = networkInfos.entries.sortedBy { networkToInt(it) }
+        val bestEntry = sorted.firstOrNull()
+        val dnsList = (bestEntry?.value?.dnsList
             ?: emptyList()).map { x -> x.asSocketAddressText(53) }
         if (dnsList == preDnsList) {
+            // F-03: Even if DNS list unchanged, underlying networks may have changed
+            // (e.g., Wi-Fi lost → cellular only). Still update underlying networks.
+            setUnderlyingNetworks(sorted)
             return
         }
         preDnsList = dnsList
         Core.updateDNS(dnsList.toSet().joinToString(","))
+        // F-03: Update underlying networks with all available networks after DNS update
+        setUnderlyingNetworks(sorted)
     }
 
-    // S-12: Enable setUnderlyingNetworks() for all API levels to allow the system
-    // to optimize radio usage (Wi-Fi vs cellular), reducing battery drain.
-    // Previously commented out and limited to API 22-28.
-    fun setUnderlyingNetworks(network: Network) {
+    // F-03: Pass ALL available networks to setUnderlyingNetworks so the system can
+    // optimize radio usage correctly. Previously only passed the single triggering
+    // network (which could be a dying/lost network), causing the system to hold
+    // the wrong radio awake during network handoffs.
+    private fun setUnderlyingNetworks(sortedEntries: List<Map.Entry<Network, NetworkInfo>>) {
         if (service is android.net.VpnService) {
+            val availableNetworks = sortedEntries
+                .filter { it.value.isAvailable() }
+                .map { it.key }
+                .toTypedArray()
             try {
-                service.setUnderlyingNetworks(arrayOf(network))
+                service.setUnderlyingNetworks(availableNetworks)
             } catch (_: Exception) {
                 // Ignore on devices that don't support this
             }
@@ -137,6 +157,9 @@ class NetworkObserveModule(private val service: Service) : Module() {
     }
 
     override fun onUninstall() {
+        // S-18: Cancel debounce scope to prevent orphan coroutine calling into
+        // a partially torn-down Go core after service destruction.
+        updateNetworkScope.cancel()
         connectivity?.unregisterNetworkCallback(callback)
         networkInfos.clear()
         onUpdateNetwork()

@@ -190,6 +190,9 @@ class RemoteService : Service(),
     }
 
     override fun onDestroy() {
+        // F-02: Cancel coroutine scope to free resources on service destroy,
+        // consistent with VpnService and CommonService which both call cancel()
+        cancel()
         GlobalState.log("Remote service destroy")
         super.onDestroy()
     }
