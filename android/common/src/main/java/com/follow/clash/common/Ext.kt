@@ -146,12 +146,16 @@ fun Context.receiveBroadcastFlow(
 }
 
 
-// S-16: Changed default flag from BIND_AUTO_CREATE to BIND_ABOVE_CLIENT.
-// BIND_AUTO_CREATE keeps the service process alive even when no work is being done,
-// wasting battery. BIND_ABOVE_CLIENT only binds when the client is active.
+// S-16-R1: Use BIND_ABOVE_CLIENT | BIND_AUTO_CREATE as default binding flags.
+// BIND_ABOVE_CLIENT tells the system the service is more important than the activity,
+// preventing the system from killing the service before the activity in low-memory scenarios.
+// BIND_AUTO_CREATE ensures the VPN service stays alive when bound — critical because
+// killing a VPN service mid-session drops the user's tunnel and causes connectivity loss.
+// The combination preserves battery-saving from other fixes (lifecycle awareness, timer
+// management, batching) while guaranteeing VPN service continuity.
 inline fun <reified T : IBinder> Context.bindServiceFlow(
     intent: Intent,
-    flags: Int = Context.BIND_ABOVE_CLIENT,
+    flags: Int = Context.BIND_ABOVE_CLIENT or Context.BIND_AUTO_CREATE,
     maxRetries: Int = 10,
     retryDelayMillis: Long = 200L
 ): Flow<Pair<IBinder?, String>> = callbackFlow {
